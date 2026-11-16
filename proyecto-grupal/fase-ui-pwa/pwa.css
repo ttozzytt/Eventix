@@ -114,3 +114,29 @@ main.app-views{display:flex;flex:1 1 auto;min-height:0;height:auto;overflow:hidd
 @media(max-width:900px){.service-grid,.food-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.care-gallery img{height:145px}}
 @media(max-width:620px){.service-grid,.food-grid{grid-template-columns:1fr;gap:10px}.service-card{grid-template-columns:95px minmax(0,1fr);min-height:190px}.service-art{min-height:190px}.service-body{padding:11px}.service-body h3{font-size:15px}.service-detail-toggle{display:inline-flex!important}.food-banner{grid-template-columns:1fr}.food-banner img{height:190px;min-height:190px}.food-art{height:190px}.care-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.care-gallery article:last-child{grid-column:1/-1}.care-gallery article:last-child img{height:180px}}
 @media(max-width:390px){.service-card{grid-template-columns:82px minmax(0,1fr)}.service-body{padding:9px}.service-detail-toggle{min-height:44px}.food-grid{grid-template-columns:1fr}.care-gallery{grid-template-columns:1fr}.care-gallery article:last-child{grid-column:auto}.care-gallery img,.care-gallery article:last-child img{height:180px}}
+
+
+/* Contenido de atención y preparación de visita. */
+.visit-prep{padding-top:68px;padding-bottom:68px}
+.prep-heading{max-width:610px;margin-bottom:26px}
+.prep-heading h2{font:42px/1.08 var(--serif);color:var(--forest);margin:12px 0}
+.prep-heading h2 em{font-style:normal;color:var(--coral)}
+.prep-heading>p:last-child{max-width:470px;font-size:12px;line-height:1.7;color:var(--muted)}
+.prep-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.prep-grid article{min-height:180px;padding:18px;background:#f4f6ef;border:1px solid #e0e7dc;border-radius:12px}
+.prep-grid article>span{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:#e1ebde;color:var(--forest);font-size:10px;font-weight:800}
+.prep-grid b{display:block;margin-top:16px;color:var(--forest);font-size:13px}
+.prep-grid p{margin:7px 0 0;color:#6d7c70;font-size:10px;line-height:1.65}
+.faq-section{padding-top:65px;padding-bottom:72px}
+.faq-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.faq-grid details{align-self:start;padding:0 17px;background:#fff;border:1px solid #e0e6dd;border-radius:10px}
+.faq-grid summary{display:flex;align-items:center;min-height:58px;cursor:pointer;list-style:none;font-size:12px;font-weight:750;color:var(--forest)}
+.faq-grid summary::-webkit-details-marker{display:none}
+.faq-grid summary:after{content:"+";margin-left:auto;font-size:19px;color:var(--coral)}
+.faq-grid details[open] summary:after{content:"−"}
+.faq-grid details p{margin:0 0 17px;color:#647268;font-size:11px;line-height:1.7}
+.food-guidance{display:block;padding-top:10px;border-top:1px solid var(--line);font-size:10px;line-height:1.6;color:#55715f}
+.food-disclaimer{max-width:880px;margin:20px auto 0}
+@media(max-width:900px){.prep-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.visit-prep{padding-top:48px;padding-bottom:48px}.prep-heading h2{font-size:34px}.prep-grid{grid-template-columns:1fr 1fr}.prep-grid article{min-height:165px;padding:14px}.faq-section{padding-top:48px;padding-bottom:52px}.faq-grid{grid-template-columns:1fr}}
+@media(max-width:390px){.prep-grid{grid-template-columns:1fr}.prep-grid article{min-height:0}}
