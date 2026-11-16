@@ -1,0 +1,30 @@
+name: Preparar y publicar Pata Andina
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".upload-pata-andina/**"
+      - ".github/workflows/publish-pata-andina.yml"
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Reconstruir el paquete
+        run: |
+          cat .upload-pata-andina/part*.b64 | base64 -d > /tmp/pata-andina.tar.xz
+          tar -xJf /tmp/pata-andina.tar.xz -C .
+          rm -rf .upload-pata-andina
+          rm -f .github/workflows/publish-pata-andina.yml
+      - name: Publicar archivos reales
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Publicar Veterinaria Pata Andina y laboratorio"
+          git push origin HEAD:main
