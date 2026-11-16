@@ -118,7 +118,7 @@
     "imageAlt": "Veterinario revisando los dientes de un perro durante un chequeo",
     "photoCredit": "Tima Miroshnichenko",
     "photoUrl": "https://www.pexels.com/photo/a-veterinarian-examining-a-dog-teeth-6235115/",
-    "fallbackImage": "./imagenes/dental.svg"
+    "fallbackImage": "./imagenes/odontologia.svg"
   },
   {
     "id": "esterilizacion",
