@@ -29,12 +29,12 @@
     "priceValue": 70,
     "priceLabel": "Bs 70*",
     "tag": "GATITOS",
-    "image": "https://images.pexels.com/photos/28644631/pexels-photo-28644631/free-photo-of-veterinarian-examining-cat-in-clinic.jpeg?auto=compress&dpr=1&h=750&w=1260",
+    "image": "https://images.pexels.com/photos/6816859/pexels-photo-6816859.jpeg?cs=srgb&dl=pexels-gustavo-fring-6816859.jpg&fm=jpg",
     "species": "Gatos",
     "note": "Precio ilustrativo de proyecto académico.",
-    "imageAlt": "Veterinario examinando un gato con estetoscopio en una clínica",
-    "photoCredit": "Sueda Güzeldere",
-    "photoUrl": "https://www.pexels.com/photo/veterinarian-examining-cat-in-clinic-28644631/",
+    "imageAlt": "Veterinario examinando a un gato durante una consulta",
+    "photoCredit": "Gustavo Fring",
+    "photoUrl": "https://www.pexels.com/photo/cat-at-the-veterinarian-6816859/",
     "fallbackImage": "./imagenes/gato.svg"
   },
   {
@@ -67,9 +67,13 @@
     "priceValue": 80,
     "priceLabel": "Desde Bs 80*",
     "tag": "CUIDADO",
-    "image": "./imagenes/vacuna.svg",
+    "image": "https://images.pexels.com/photos/7469223/pexels-photo-7469223.jpeg?cs=srgb&dl=pexels-mikhail-nilov-7469223.jpg&fm=jpg",
     "species": "Perros",
-    "note": "No se fija un esquema por internet."
+    "note": "No se fija un esquema por internet.",
+    "imageAlt": "Atención veterinaria y vacunación de un perro",
+    "photoCredit": "Mikhail Nilov",
+    "photoUrl": "https://www.pexels.com/photo/a-volunteer-person-holding-a-brown-dog-7469223/",
+    "fallbackImage": "./imagenes/vacuna.svg"
   },
   {
     "id": "vacuna-felina",
@@ -82,9 +86,13 @@
     "priceValue": 85,
     "priceLabel": "Desde Bs 85*",
     "tag": "CUIDADO",
-    "image": "./imagenes/gato.svg",
+    "image": "https://images.pexels.com/photos/6816869/pexels-photo-6816869.jpeg?cs=srgb&dl=pexels-gustavo-fring-6816869.jpg&fm=jpg",
     "species": "Gatos",
-    "note": "No se fija un esquema por internet."
+    "note": "No se fija un esquema por internet.",
+    "imageAlt": "Veterinario preparando una vacuna para un gato en una clínica",
+    "photoCredit": "Gustavo Fring",
+    "photoUrl": "https://www.pexels.com/photo/a-veterinarian-holding-am-injection-for-a-cat-6816869/",
+    "fallbackImage": "./imagenes/vacuna.svg"
   },
   {
     "id": "desparasitacion",

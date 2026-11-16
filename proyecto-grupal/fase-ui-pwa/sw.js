@@ -1,7 +1,7 @@
 'use strict';
 // Service Worker PWA Offline-First para Pata Andina Vet.
 // Guarda las dos pantallas, los estilos, scripts, iconos, datos y recursos visuales locales.
-const CACHE_NAME = "pata-andina-vet-v4-shell8";
+const CACHE_NAME = "pata-andina-vet-v4-shell8-catalogo-fotos";
 const APP_SHELL = [
   "./",
   "./index.html",
