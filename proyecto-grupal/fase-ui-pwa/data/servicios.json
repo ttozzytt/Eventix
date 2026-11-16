@@ -10,12 +10,10 @@
     "priceValue": 60,
     "priceLabel": "Bs 60*",
     "tag": "ESENCIAL",
-    "image": "https://images.pexels.com/photos/6235650/pexels-photo-6235650.jpeg?auto=compress&dpr=1&h=750&w=1260",
+    "image": "./imagenes/vet-consulta.webp",
     "species": "Perros y gatos",
     "note": "Precio ilustrativo de proyecto académico.",
-    "imageAlt": "Veterinario revisando a un perro pequeño con un estetoscopio en una clínica",
-    "photoCredit": "Tima Miroshnichenko",
-    "photoUrl": "https://www.pexels.com/photo/a-dog-at-the-clinic-6235650/",
+    "imageAlt": "Atención veterinaria: consulta veterinaria general",
     "fallbackImage": "./imagenes/consulta.svg"
   },
   {
@@ -29,13 +27,11 @@
     "priceValue": 70,
     "priceLabel": "Bs 70*",
     "tag": "GATITOS",
-    "image": "https://images.pexels.com/photos/6816859/pexels-photo-6816859.jpeg?cs=srgb&dl=pexels-gustavo-fring-6816859.jpg&fm=jpg",
+    "image": "./imagenes/vet-atencion-felina.webp",
     "species": "Gatos",
     "note": "Precio ilustrativo de proyecto académico.",
-    "imageAlt": "Veterinario examinando a un gato durante una consulta",
-    "photoCredit": "Gustavo Fring",
-    "photoUrl": "https://www.pexels.com/photo/cat-at-the-veterinarian-6816859/",
-    "fallbackImage": "./imagenes/gato.svg"
+    "imageAlt": "Atención veterinaria: consulta felina",
+    "fallbackImage": "./imagenes/consulta.svg"
   },
   {
     "id": "control-cachorro",
@@ -48,13 +44,11 @@
     "priceValue": 50,
     "priceLabel": "Bs 50*",
     "tag": "PREVENCIÓN",
-    "image": "https://images.pexels.com/photos/6235108/pexels-photo-6235108.jpeg?auto=compress&dpr=1&h=750&w=1260",
+    "image": "./imagenes/vet-portada.webp",
     "species": "Cachorros y gatitos",
     "note": "El calendario se define en consulta.",
-    "imageAlt": "Equipo veterinario examinando a un perro pequeño durante un control",
-    "photoCredit": "Tima Miroshnichenko",
-    "photoUrl": "https://www.pexels.com/photo/a-vet-checking-a-pomeranian-dog-6235108/",
-    "fallbackImage": "./imagenes/control.svg"
+    "imageAlt": "Atención veterinaria: control de cachorro o gatito",
+    "fallbackImage": "./imagenes/consulta.svg"
   },
   {
     "id": "vacuna-canina",
@@ -67,13 +61,11 @@
     "priceValue": 80,
     "priceLabel": "Desde Bs 80*",
     "tag": "CUIDADO",
-    "image": "https://images.pexels.com/photos/7469223/pexels-photo-7469223.jpeg?cs=srgb&dl=pexels-mikhail-nilov-7469223.jpg&fm=jpg",
+    "image": "./imagenes/vet-diagnostico.webp",
     "species": "Perros",
     "note": "No se fija un esquema por internet.",
-    "imageAlt": "Atención veterinaria y vacunación de un perro",
-    "photoCredit": "Mikhail Nilov",
-    "photoUrl": "https://www.pexels.com/photo/a-volunteer-person-holding-a-brown-dog-7469223/",
-    "fallbackImage": "./imagenes/vacuna.svg"
+    "imageAlt": "Atención veterinaria: vacunación canina",
+    "fallbackImage": "./imagenes/consulta.svg"
   },
   {
     "id": "vacuna-felina",
@@ -86,13 +78,11 @@
     "priceValue": 85,
     "priceLabel": "Desde Bs 85*",
     "tag": "CUIDADO",
-    "image": "https://images.pexels.com/photos/6816869/pexels-photo-6816869.jpeg?cs=srgb&dl=pexels-gustavo-fring-6816869.jpg&fm=jpg",
+    "image": "./imagenes/vet-atencion-felina.webp",
     "species": "Gatos",
     "note": "No se fija un esquema por internet.",
-    "imageAlt": "Veterinario preparando una vacuna para un gato en una clínica",
-    "photoCredit": "Gustavo Fring",
-    "photoUrl": "https://www.pexels.com/photo/a-veterinarian-holding-am-injection-for-a-cat-6816869/",
-    "fallbackImage": "./imagenes/vacuna.svg"
+    "imageAlt": "Atención veterinaria: vacunación felina",
+    "fallbackImage": "./imagenes/consulta.svg"
   },
   {
     "id": "desparasitacion",
@@ -105,9 +95,10 @@
     "priceValue": 40,
     "priceLabel": "Desde Bs 40*",
     "tag": "PREVENCIÓN",
-    "image": "./imagenes/prevencion.svg",
+    "image": "./imagenes/vet-consulta.webp",
     "species": "Perros y gatos",
-    "note": "El costo puede variar por peso y producto."
+    "note": "El costo puede variar por peso y producto.",
+    "imageAlt": "Atención veterinaria: desparasitación"
   },
   {
     "id": "profilaxis-dental",
@@ -120,13 +111,11 @@
     "priceValue": 180,
     "priceLabel": "Desde Bs 180*",
     "tag": "SALUD ORAL",
-    "image": "https://images.pexels.com/photos/6235115/pexels-photo-6235115.jpeg?auto=compress&dpr=1&h=750&w=1260",
+    "image": "./imagenes/vet-evaluacion.webp",
     "species": "Perros y gatos",
     "note": "Procedimiento sujeto a evaluación.",
-    "imageAlt": "Veterinario revisando los dientes de un perro durante un chequeo",
-    "photoCredit": "Tima Miroshnichenko",
-    "photoUrl": "https://www.pexels.com/photo/a-veterinarian-examining-a-dog-teeth-6235115/",
-    "fallbackImage": "./imagenes/odontologia.svg"
+    "imageAlt": "Atención veterinaria: evaluación y limpieza dental",
+    "fallbackImage": "./imagenes/consulta.svg"
   },
   {
     "id": "esterilizacion",
@@ -139,9 +128,10 @@
     "priceValue": null,
     "priceLabel": "Cotización tras evaluación",
     "tag": "PREQUIRÚRGICO",
-    "image": "./imagenes/cirugia.svg",
+    "image": "./imagenes/vet-diagnostico.webp",
     "species": "Perros y gatos",
-    "note": "No es una reserva de cirugía."
+    "note": "No es una reserva de cirugía.",
+    "imageAlt": "Atención veterinaria: evaluación para esterilización"
   },
   {
     "id": "cirugia",
@@ -154,9 +144,10 @@
     "priceValue": null,
     "priceLabel": "Cotización según caso",
     "tag": "VALORACIÓN",
-    "image": "./imagenes/cirugia.svg",
+    "image": "./imagenes/vet-diagnostico.webp",
     "species": "Perros y gatos",
-    "note": "La operación requiere confirmación del centro."
+    "note": "La operación requiere confirmación del centro.",
+    "imageAlt": "Atención veterinaria: valoración quirúrgica"
   },
   {
     "id": "curaciones",
@@ -169,9 +160,10 @@
     "priceValue": 70,
     "priceLabel": "Desde Bs 70*",
     "tag": "SEGUIMIENTO",
-    "image": "./imagenes/curaciones.svg",
+    "image": "./imagenes/vet-evaluacion.webp",
     "species": "Perros y gatos",
-    "note": "No sustituye una atención de urgencia."
+    "note": "No sustituye una atención de urgencia.",
+    "imageAlt": "Atención veterinaria: curaciones y control ambulatorio"
   },
   {
     "id": "laboratorio",
@@ -184,9 +176,10 @@
     "priceValue": null,
     "priceLabel": "Según prueba solicitada",
     "tag": "DIAGNÓSTICO",
-    "image": "./imagenes/laboratorio.svg",
+    "image": "./imagenes/vet-evaluacion.webp",
     "species": "Perros y gatos",
-    "note": "Disponibilidad y resultado dependen del estudio."
+    "note": "Disponibilidad y resultado dependen del estudio.",
+    "imageAlt": "Atención veterinaria: toma de muestra y laboratorio"
   },
   {
     "id": "imagenologia",
@@ -199,9 +192,10 @@
     "priceValue": null,
     "priceLabel": "Consultar disponibilidad",
     "tag": "IMÁGENES",
-    "image": "./imagenes/imagenologia.svg",
+    "image": "./imagenes/vet-diagnostico.webp",
     "species": "Perros y gatos",
-    "note": "No se afirma tener equipo propio."
+    "note": "No se afirma tener equipo propio.",
+    "imageAlt": "Atención veterinaria: ecografía o radiografía"
   },
   {
     "id": "consulta-domicilio",
@@ -214,9 +208,10 @@
     "priceValue": 100,
     "priceLabel": "Desde Bs 100*",
     "tag": "A DOMICILIO",
-    "image": "./imagenes/domicilio.svg",
+    "image": "./imagenes/vet-cuidados.webp",
     "species": "Perros y gatos",
-    "note": "Confirmar zona antes de agendar."
+    "note": "Confirmar zona antes de agendar.",
+    "imageAlt": "Atención veterinaria: consulta a domicilio"
   },
   {
     "id": "peluqueria",
@@ -229,13 +224,11 @@
     "priceValue": 90,
     "priceLabel": "Desde Bs 90*",
     "tag": "BIENESTAR",
-    "image": "https://images.pexels.com/photos/6816849/pexels-photo-6816849.jpeg?auto=compress&dpr=1&h=750&w=1260",
+    "image": "./imagenes/vet-cuidados.webp",
     "species": "Principalmente perros",
     "note": "El costo varía por tamaño y tipo de pelo.",
-    "imageAlt": "Profesional realizando el aseo y peluquería de un perro Yorkshire Terrier",
-    "photoCredit": "Gustavo Fring",
-    "photoUrl": "https://www.pexels.com/photo/female-veterinarian-grooming-a-dog-6816849/",
-    "fallbackImage": "./imagenes/peluqueria.svg"
+    "imageAlt": "Atención veterinaria: baño y peluquería higiénica",
+    "fallbackImage": "./imagenes/consulta.svg"
   },
   {
     "id": "nutricion",
@@ -248,8 +241,9 @@
     "priceValue": 50,
     "priceLabel": "Bs 50*",
     "tag": "HÁBITOS",
-    "image": "./imagenes/nutricion.svg",
+    "image": "./imagenes/vet-consulta.webp",
     "species": "Perros y gatos",
-    "note": "Precio ilustrativo de proyecto académico."
+    "note": "Precio ilustrativo de proyecto académico.",
+    "imageAlt": "Atención veterinaria: orientación nutricional"
   }
 ]

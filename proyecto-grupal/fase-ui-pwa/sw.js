@@ -1,7 +1,7 @@
 'use strict';
 // Service Worker PWA Offline-First para Pata Andina Vet.
 // Guarda las dos pantallas, los estilos, scripts, iconos, datos y recursos visuales locales.
-const CACHE_NAME = "pata-andina-vet-v4-shell8-catalogo-fotos";
+const CACHE_NAME = "pata-andina-vet-v5-local-fotos";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -28,7 +28,13 @@ const APP_SHELL = [
   "./imagenes/nutricion.svg",
   "./imagenes/peluqueria.svg",
   "./imagenes/prevencion.svg",
-  "./imagenes/vacuna.svg"
+  "./imagenes/vacuna.svg",
+  "./imagenes/vet-portada.webp",
+  "./imagenes/vet-consulta.webp",
+  "./imagenes/vet-diagnostico.webp",
+  "./imagenes/vet-evaluacion.webp",
+  "./imagenes/vet-atencion-felina.webp",
+  "./imagenes/vet-cuidados.webp"
 ];
 
 self.addEventListener('install', event => {
@@ -52,23 +58,8 @@ self.addEventListener('fetch', event => {
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
   const sameOrigin = url.origin === self.location.origin;
-  const isJQuery = false;
   if (url.searchParams.has("__pata_health")) { event.respondWith(fetch(request)); return; }
-  const isPhoto = request.destination === 'image' && ["images.pexels.com", "www.nestle.com.bo", "amarket.com.bo", "cdn.shopify.com", "www.interpharma.co.th"].includes(url.hostname);
-  if (isPhoto) {
-    event.respondWith((async () => {
-      const cache = await caches.open(CACHE_NAME);
-      const saved = await cache.match(request);
-      if (saved) return saved;
-      try {
-        const live = await fetch(request);
-        if (live.ok || live.type === 'opaque') await cache.put(request, live.clone());
-        return live;
-      } catch (_) { return saved || Response.error(); }
-    })());
-    return;
-  }
-  if (!sameOrigin && !isJQuery) return;
+  if (!sameOrigin) return;
 
   // Los catálogos JSON se actualizan desde la red y conservan la última copia si no hay conexión.
   if (url.origin === self.location.origin && /\/data\/(servicios|productos-gatos)\.json$/.test(url.pathname)) {
