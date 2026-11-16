@@ -140,3 +140,11 @@ main.app-views{display:flex;flex:1 1 auto;min-height:0;height:auto;overflow:hidd
 @media(max-width:900px){.prep-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){.visit-prep{padding-top:48px;padding-bottom:48px}.prep-heading h2{font-size:34px}.prep-grid{grid-template-columns:1fr 1fr}.prep-grid article{min-height:165px;padding:14px}.faq-section{padding-top:48px;padding-bottom:52px}.faq-grid{grid-template-columns:1fr}}
 @media(max-width:390px){.prep-grid{grid-template-columns:1fr}.prep-grid article{min-height:0}}
+
+/* Las fotos del catálogo se presentan sin ampliaciones innecesarias. */
+.hero-visual img{max-height:330px;object-fit:contain;image-rendering:auto}
+.service-art{min-height:150px}
+.service-art img{width:100%;height:100%;object-fit:contain;background:#eef1ea;image-rendering:auto}
+.food-art img{width:100%;height:100%;object-fit:contain;background:#eef1ea;image-rendering:auto}
+.care-gallery img{object-fit:contain;background:#e8ede4}
+@media(max-width:620px){.hero-visual img{max-height:260px}.service-art{min-height:125px}}
