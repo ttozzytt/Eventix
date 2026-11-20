@@ -142,10 +142,12 @@
     "priceValue": null,
     "priceLabel": "Cotización tras evaluación",
     "tag": "PREQUIRÚRGICO",
-    "image": "./imagenes/vet-diagnostico.webp",
+    "image": "https://images.pexels.com/photos/6235650/pexels-photo-6235650.jpeg",
     "species": "Perros y gatos",
     "note": "No es una reserva de cirugía.",
-    "imageAlt": "Atención veterinaria: evaluación para esterilización"
+    "imageAlt": "Valoración clínica veterinaria previa a una intervención",
+    "photoCredit": "Tima Miroshnichenko",
+    "photoUrl": "https://www.pexels.com/photo/6235650/"
   },
   {
     "id": "cirugia",
@@ -158,10 +160,12 @@
     "priceValue": null,
     "priceLabel": "Cotización según caso",
     "tag": "VALORACIÓN",
-    "image": "./imagenes/vet-diagnostico.webp",
+    "image": "https://images.pexels.com/photos/7469216/pexels-photo-7469216.jpeg",
     "species": "Perros y gatos",
     "note": "La operación requiere confirmación del centro.",
-    "imageAlt": "Atención veterinaria: valoración quirúrgica"
+    "imageAlt": "Revisión clínica de una mascota antes de definir un procedimiento",
+    "photoCredit": "Mikhail Nilov",
+    "photoUrl": "https://www.pexels.com/photo/7469216/"
   },
   {
     "id": "curaciones",
