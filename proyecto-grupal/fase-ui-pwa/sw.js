@@ -1,7 +1,7 @@
 'use strict';
 // Service Worker PWA Offline-First para Pata Andina Vet.
 // Guarda las dos pantallas, los estilos, scripts, iconos, datos y recursos visuales locales.
-const CACHE_NAME = "pata-andina-v9-mobile-first-bento";
+const CACHE_NAME = "pata-andina-v10-scroll-full-photo-20261120";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -59,7 +59,20 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   const sameOrigin = url.origin === self.location.origin;
   if (url.searchParams.has("__pata_health")) { event.respondWith(fetch(request)); return; }
-  if (!sameOrigin) return;
+  if (!sameOrigin) {
+    if (request.destination !== 'image') return;
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      const saved = await cache.match(request);
+      if (saved) return saved;
+      try {
+        const live = await fetch(request);
+        if (live.ok || live.type === 'opaque') await cache.put(request, live.clone());
+        return live;
+      } catch (_) { return saved || Response.error(); }
+    })());
+    return;
+  }
 
   // Los catálogos JSON se actualizan desde la red y conservan la última copia si no hay conexión.
   if (url.origin === self.location.origin && /\/data\/(servicios|productos-gatos)\.json$/.test(url.pathname)) {
