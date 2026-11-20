@@ -286,3 +286,13 @@ main.app-views{display:flex;flex:1 1 auto;min-height:0;height:auto;overflow:hidd
   .hero-visual{aspect-ratio:4/3;height:auto}
   .services-section,.booking-section,.care-section,.faq-section{padding-block:30px}
 }
+
+/* Fotos de consulta con proporción natural y sin estiramiento. */
+.hero-visual{overflow:hidden;aspect-ratio:4/3;height:auto}
+.hero-visual>img{width:100%;height:100%;max-height:none!important;object-fit:cover!important;object-position:center}
+.service-art img,.food-art img,.care-gallery img{width:100%;height:100%;object-fit:cover!important;background:transparent!important}
+.care-gallery img{height:220px}
+@media(max-width:767px){
+  .hero-visual{width:min(100%,520px);aspect-ratio:4/3;height:auto}
+  .hero-visual>img{height:100%;max-height:none!important}
+}
