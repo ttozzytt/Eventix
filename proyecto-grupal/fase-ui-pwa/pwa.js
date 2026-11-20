@@ -63,3 +63,18 @@ async function checkOnline(){network();if(!navigator.onLine)return;try{const r=a
 async function init(){try{if(localStorage.getItem(THEME)==='dark'){document.body.classList.add('dark-theme');$('themeToggle').textContent='☀'}}catch(_){}bindEvents();bindPhotoFallbacks();renderAppointments();updateSummary();await loadServices();await loadCatFoods();checkOnline();window.addEventListener('online',checkOnline);window.addEventListener('offline',network);setupKeyboard();if('serviceWorker'in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('No se pudo registrar el Service Worker',e))}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
+
+
+/* Demostración de grilla solicitada en la Guía Práctica Parte 2. */
+(() => {
+  const button = document.getElementById('btnSimularVista');
+  const grid = document.getElementById('serviceGrid');
+  if (!button || !grid) return;
+  button.addEventListener('click', () => {
+    const compact = grid.classList.toggle('sim-movil');
+    button.setAttribute('aria-pressed', String(compact));
+    button.textContent = compact
+      ? 'Volver a vista adaptable'
+      : 'Simular Vista Móvil / Escritorio';
+  });
+})();
