@@ -10,11 +10,13 @@
     "priceValue": 60,
     "priceLabel": "Bs 60*",
     "tag": "ESENCIAL",
-    "image": "./imagenes/vet-consulta.webp",
+    "image": "https://images.pexels.com/photos/6235650/pexels-photo-6235650.jpeg",
     "species": "Perros y gatos",
     "note": "Precio ilustrativo de proyecto académico.",
-    "imageAlt": "Atención veterinaria: consulta veterinaria general",
-    "fallbackImage": "./imagenes/consulta.svg"
+    "imageAlt": "Atención veterinaria a un perro durante una consulta",
+    "fallbackImage": "./imagenes/consulta.svg",
+    "photoCredit": "Tima Miroshnichenko",
+    "photoUrl": "https://www.pexels.com/photo/6235650/"
   },
   {
     "id": "consulta-felina",
@@ -27,11 +29,13 @@
     "priceValue": 70,
     "priceLabel": "Bs 70*",
     "tag": "GATITOS",
-    "image": "./imagenes/vet-atencion-felina.webp",
+    "image": "https://images.pexels.com/photos/28644631/pexels-photo-28644631.jpeg",
     "species": "Gatos",
     "note": "Precio ilustrativo de proyecto académico.",
-    "imageAlt": "Atención veterinaria: consulta felina",
-    "fallbackImage": "./imagenes/consulta.svg"
+    "imageAlt": "Veterinario examinando a un gato",
+    "fallbackImage": "./imagenes/consulta.svg",
+    "photoCredit": "Sueda Güzeldere",
+    "photoUrl": "https://www.pexels.com/photo/28644631/"
   },
   {
     "id": "control-cachorro",
@@ -44,11 +48,13 @@
     "priceValue": 50,
     "priceLabel": "Bs 50*",
     "tag": "PREVENCIÓN",
-    "image": "./imagenes/vet-portada.webp",
+    "image": "https://images.pexels.com/photos/6235108/pexels-photo-6235108.jpeg",
     "species": "Cachorros y gatitos",
     "note": "El calendario se define en consulta.",
-    "imageAlt": "Atención veterinaria: control de cachorro o gatito",
-    "fallbackImage": "./imagenes/consulta.svg"
+    "imageAlt": "Control preventivo de un perro pequeño",
+    "fallbackImage": "./imagenes/consulta.svg",
+    "photoCredit": "Tima Miroshnichenko",
+    "photoUrl": "https://www.pexels.com/photo/6235108/"
   },
   {
     "id": "vacuna-canina",
@@ -61,11 +67,13 @@
     "priceValue": 80,
     "priceLabel": "Desde Bs 80*",
     "tag": "CUIDADO",
-    "image": "./imagenes/vet-diagnostico.webp",
+    "image": "https://images.pexels.com/photos/6235108/pexels-photo-6235108.jpeg",
     "species": "Perros",
     "note": "No se fija un esquema por internet.",
-    "imageAlt": "Atención veterinaria: vacunación canina",
-    "fallbackImage": "./imagenes/consulta.svg"
+    "imageAlt": "Evaluación de un perro en consulta veterinaria",
+    "fallbackImage": "./imagenes/consulta.svg",
+    "photoCredit": "Tima Miroshnichenko",
+    "photoUrl": "https://www.pexels.com/photo/6235108/"
   },
   {
     "id": "vacuna-felina",
@@ -78,11 +86,13 @@
     "priceValue": 85,
     "priceLabel": "Desde Bs 85*",
     "tag": "CUIDADO",
-    "image": "./imagenes/vet-atencion-felina.webp",
+    "image": "https://images.pexels.com/photos/28644631/pexels-photo-28644631.jpeg",
     "species": "Gatos",
     "note": "No se fija un esquema por internet.",
-    "imageAlt": "Atención veterinaria: vacunación felina",
-    "fallbackImage": "./imagenes/consulta.svg"
+    "imageAlt": "Evaluación veterinaria de un gato",
+    "fallbackImage": "./imagenes/consulta.svg",
+    "photoCredit": "Sueda Güzeldere",
+    "photoUrl": "https://www.pexels.com/photo/28644631/"
   },
   {
     "id": "desparasitacion",
@@ -95,10 +105,12 @@
     "priceValue": 40,
     "priceLabel": "Desde Bs 40*",
     "tag": "PREVENCIÓN",
-    "image": "./imagenes/vet-consulta.webp",
+    "image": "https://images.pexels.com/photos/7469216/pexels-photo-7469216.jpeg",
     "species": "Perros y gatos",
     "note": "El costo puede variar por peso y producto.",
-    "imageAlt": "Atención veterinaria: desparasitación"
+    "imageAlt": "Perro durante una revisión veterinaria",
+    "photoCredit": "Mikhail Nilov",
+    "photoUrl": "https://www.pexels.com/photo/7469216/"
   },
   {
     "id": "profilaxis-dental",
@@ -111,11 +123,13 @@
     "priceValue": 180,
     "priceLabel": "Desde Bs 180*",
     "tag": "SALUD ORAL",
-    "image": "./imagenes/vet-evaluacion.webp",
+    "image": "https://images.pexels.com/photos/6235115/pexels-photo-6235115.jpeg",
     "species": "Perros y gatos",
     "note": "Procedimiento sujeto a evaluación.",
-    "imageAlt": "Atención veterinaria: evaluación y limpieza dental",
-    "fallbackImage": "./imagenes/consulta.svg"
+    "imageAlt": "Evaluación dental veterinaria de un perro",
+    "fallbackImage": "./imagenes/consulta.svg",
+    "photoCredit": "Tima Miroshnichenko",
+    "photoUrl": "https://www.pexels.com/photo/6235115/"
   },
   {
     "id": "esterilizacion",
@@ -160,10 +174,12 @@
     "priceValue": 70,
     "priceLabel": "Desde Bs 70*",
     "tag": "SEGUIMIENTO",
-    "image": "./imagenes/vet-evaluacion.webp",
+    "image": "https://images.pexels.com/photos/7469216/pexels-photo-7469216.jpeg",
     "species": "Perros y gatos",
     "note": "No sustituye una atención de urgencia.",
-    "imageAlt": "Atención veterinaria: curaciones y control ambulatorio"
+    "imageAlt": "Perro durante una revisión clínica",
+    "photoCredit": "Mikhail Nilov",
+    "photoUrl": "https://www.pexels.com/photo/7469216/"
   },
   {
     "id": "laboratorio",
@@ -176,10 +192,12 @@
     "priceValue": null,
     "priceLabel": "Según prueba solicitada",
     "tag": "DIAGNÓSTICO",
-    "image": "./imagenes/vet-evaluacion.webp",
+    "image": "https://images.pexels.com/photos/6235108/pexels-photo-6235108.jpeg",
     "species": "Perros y gatos",
     "note": "Disponibilidad y resultado dependen del estudio.",
-    "imageAlt": "Atención veterinaria: toma de muestra y laboratorio"
+    "imageAlt": "Control preventivo en consulta veterinaria",
+    "photoCredit": "Tima Miroshnichenko",
+    "photoUrl": "https://www.pexels.com/photo/6235108/"
   },
   {
     "id": "imagenologia",
@@ -192,10 +210,12 @@
     "priceValue": null,
     "priceLabel": "Consultar disponibilidad",
     "tag": "IMÁGENES",
-    "image": "./imagenes/vet-diagnostico.webp",
+    "image": "https://images.pexels.com/photos/6235650/pexels-photo-6235650.jpeg",
     "species": "Perros y gatos",
     "note": "No se afirma tener equipo propio.",
-    "imageAlt": "Atención veterinaria: ecografía o radiografía"
+    "imageAlt": "Consulta veterinaria para evaluación clínica",
+    "photoCredit": "Tima Miroshnichenko",
+    "photoUrl": "https://www.pexels.com/photo/6235650/"
   },
   {
     "id": "consulta-domicilio",
@@ -208,10 +228,12 @@
     "priceValue": 100,
     "priceLabel": "Desde Bs 100*",
     "tag": "A DOMICILIO",
-    "image": "./imagenes/vet-cuidados.webp",
+    "image": "https://images.pexels.com/photos/7469216/pexels-photo-7469216.jpeg",
     "species": "Perros y gatos",
     "note": "Confirmar zona antes de agendar.",
-    "imageAlt": "Atención veterinaria: consulta a domicilio"
+    "imageAlt": "Revisión clínica de un perro",
+    "photoCredit": "Mikhail Nilov",
+    "photoUrl": "https://www.pexels.com/photo/7469216/"
   },
   {
     "id": "peluqueria",
@@ -224,11 +246,13 @@
     "priceValue": 90,
     "priceLabel": "Desde Bs 90*",
     "tag": "BIENESTAR",
-    "image": "./imagenes/vet-cuidados.webp",
+    "image": "https://images.pexels.com/photos/6816849/pexels-photo-6816849.jpeg",
     "species": "Principalmente perros",
     "note": "El costo varía por tamaño y tipo de pelo.",
-    "imageAlt": "Atención veterinaria: baño y peluquería higiénica",
-    "fallbackImage": "./imagenes/consulta.svg"
+    "imageAlt": "Profesional realizando peluquería higiénica a un perro",
+    "fallbackImage": "./imagenes/consulta.svg",
+    "photoCredit": "Gustavo Fring",
+    "photoUrl": "https://www.pexels.com/photo/6816849/"
   },
   {
     "id": "nutricion",
@@ -241,9 +265,11 @@
     "priceValue": 50,
     "priceLabel": "Bs 50*",
     "tag": "HÁBITOS",
-    "image": "./imagenes/vet-consulta.webp",
+    "image": "https://images.pexels.com/photos/27130348/pexels-photo-27130348.jpeg",
     "species": "Perros y gatos",
     "note": "Precio ilustrativo de proyecto académico.",
-    "imageAlt": "Atención veterinaria: orientación nutricional"
+    "imageAlt": "Gato comiendo alimento",
+    "photoCredit": "Ömer Taha Çetin",
+    "photoUrl": "https://www.pexels.com/photo/27130348/"
   }
 ]
