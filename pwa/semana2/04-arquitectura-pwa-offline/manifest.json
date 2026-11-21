@@ -1,0 +1,17 @@
+{
+  "name": "Pata Andina Vet · Arquitectura PWA · Offline-First",
+  "short_name": "Práctica PWA",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f8f6",
+  "theme_color": "#204437",
+  "icons": [
+    {
+      "src": "../../assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

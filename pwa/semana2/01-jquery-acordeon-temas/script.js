@@ -1,0 +1,1 @@
+$(function(){const d=$(document);d.off('.vetAcc');d.on('click.vetAcc','.accordion-trigger',function(){const p=$('#'+$(this).data('panel')),o=p.prop('hidden');$('.accordion-panel').prop('hidden',true);p.prop('hidden',!o);});d.on('click.vetAcc','#accordionTheme',()=>{$('html').attr('data-theme',$('html').attr('data-theme')==='dark'?'light':'dark');});});

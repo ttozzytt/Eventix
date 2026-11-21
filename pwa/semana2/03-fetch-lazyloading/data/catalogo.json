@@ -1,0 +1,122 @@
+[
+  {
+    "id": "consulta-general",
+    "name": "Consulta veterinaria general",
+    "category": "consulta",
+    "description": "Revisión clínica inicial para perros y gatos, con orientación para el siguiente paso.",
+    "priceLabel": "Bs 60*",
+    "image": "../../../proyecto-grupal/fase-ui-pwa/imagenes/vet-consulta.webp"
+  },
+  {
+    "id": "consulta-felina",
+    "name": "Consulta felina",
+    "category": "consulta",
+    "description": "Atención pensada para reducir el estrés durante la visita de tu gato.",
+    "priceLabel": "Bs 70*",
+    "image": "../../../proyecto-grupal/fase-ui-pwa/imagenes/vet-atencion-felina.webp"
+  },
+  {
+    "id": "control-cachorro",
+    "name": "Control de cachorro o gatito",
+    "category": "prevencion",
+    "description": "Seguimiento de crecimiento, hábitos y plan preventivo según edad.",
+    "priceLabel": "Bs 50*",
+    "image": "../../../proyecto-grupal/fase-ui-pwa/imagenes/vet-portada.webp"
+  },
+  {
+    "id": "vacuna-canina",
+    "name": "Vacunación canina",
+    "category": "prevencion",
+    "description": "Revisión previa y aplicación de vacunas indicadas para cada paciente.",
+    "priceLabel": "Desde Bs 80*",
+    "image": "../../../proyecto-grupal/fase-ui-pwa/imagenes/vet-diagnostico.webp"
+  },
+  {
+    "id": "vacuna-felina",
+    "name": "Vacunación felina",
+    "category": "prevencion",
+    "description": "Evaluación y vacunación felina según antecedentes y recomendación profesional.",
+    "priceLabel": "Desde Bs 85*",
+    "image": "../../../proyecto-grupal/fase-ui-pwa/imagenes/vet-atencion-felina.webp"
+  },
+  {
+    "id": "desparasitacion",
+    "name": "Desparasitación",
+    "category": "prevencion",
+    "description": "Orientación y control antiparasitario individual según especie y peso.",
+    "priceLabel": "Desde Bs 40*",
+    "image": "../../../proyecto-grupal/fase-ui-pwa/imagenes/vet-consulta.webp"
+  },
+  {
+    "id": "profilaxis-dental",
+    "name": "Evaluación y limpieza dental",
+    "category": "consulta",
+    "description": "Valoración de salud oral y propuesta de higiene o profilaxis.",
+    "priceLabel": "Desde Bs 180*",
+    "image": "../../../proyecto-grupal/fase-ui-pwa/imagenes/vet-evaluacion.webp"
+  },
+  {
+    "id": "esterilizacion",
+    "name": "Evaluación para esterilización",
+    "category": "procedimientos",
+    "description": "Consulta prequirúrgica para revisar condiciones y requisitos del procedimiento.",
+    "priceLabel": "Cotización tras evaluación",
+    "image": "../../../proyecto-grupal/fase-ui-pwa/imagenes/vet-diagnostico.webp"
+  },
+  {
+    "id": "cirugia",
+    "name": "Valoración quirúrgica",
+    "category": "procedimientos",
+    "description": "Primera valoración para procedimientos programados o evaluación de una lesión.",
+    "priceLabel": "Cotización según caso",
+    "image": "../../../proyecto-grupal/fase-ui-pwa/imagenes/vet-diagnostico.webp"
+  },
+  {
+    "id": "curaciones",
+    "name": "Curaciones y control ambulatorio",
+    "category": "procedimientos",
+    "description": "Revisión y cuidado de heridas o controles indicados por el profesional.",
+    "priceLabel": "Desde Bs 70*",
+    "image": "../../../proyecto-grupal/fase-ui-pwa/imagenes/vet-evaluacion.webp"
+  },
+  {
+    "id": "laboratorio",
+    "name": "Toma de muestra y laboratorio",
+    "category": "diagnostico",
+    "description": "Coordinación de muestras y pruebas complementarias cuando estén indicadas.",
+    "priceLabel": "Según prueba solicitada",
+    "image": "../../../proyecto-grupal/fase-ui-pwa/imagenes/vet-evaluacion.webp"
+  },
+  {
+    "id": "imagenologia",
+    "name": "Ecografía o radiografía",
+    "category": "diagnostico",
+    "description": "Coordinación de apoyo por imagen según indicación y disponibilidad.",
+    "priceLabel": "Consultar disponibilidad",
+    "image": "../../../proyecto-grupal/fase-ui-pwa/imagenes/vet-diagnostico.webp"
+  },
+  {
+    "id": "consulta-domicilio",
+    "name": "Consulta a domicilio",
+    "category": "consulta",
+    "description": "Atención programada en domicilio, sujeta a zona y disponibilidad.",
+    "priceLabel": "Desde Bs 100*",
+    "image": "../../../proyecto-grupal/fase-ui-pwa/imagenes/vet-cuidados.webp"
+  },
+  {
+    "id": "peluqueria",
+    "name": "Baño y peluquería higiénica",
+    "category": "bienestar",
+    "description": "Baño, cepillado y cuidado estético de acuerdo con pelaje y tolerancia.",
+    "priceLabel": "Desde Bs 90*",
+    "image": "../../../proyecto-grupal/fase-ui-pwa/imagenes/vet-cuidados.webp"
+  },
+  {
+    "id": "nutricion",
+    "name": "Orientación nutricional",
+    "category": "bienestar",
+    "description": "Consejos de alimentación de acuerdo con edad, condición y estilo de vida.",
+    "priceLabel": "Bs 50*",
+    "image": "../../../proyecto-grupal/fase-ui-pwa/imagenes/vet-consulta.webp"
+  }
+]
