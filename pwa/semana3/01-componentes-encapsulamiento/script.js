@@ -1,1 +1,0 @@
-console.info('Web Component de tarjetas cargado.');
