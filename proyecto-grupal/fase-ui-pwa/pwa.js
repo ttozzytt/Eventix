@@ -310,7 +310,7 @@ function closeBookingModal() {
 
 async function ensurePetForUser(data) {
   if (!currentUser) return null;
-  const existing = currentPets.find(item => item.name.toLocaleLowerCase('es-BO') === data.petName.toLocaleLowerCase('es-BO') && item.species === data.species);
+  const existing = currentPets.find(item => item.owner_id === currentUser.id && item.name.toLocaleLowerCase('es-BO') === data.petName.toLocaleLowerCase('es-BO') && item.species === data.species);
   if (existing) return existing.id;
   const response = await client.from('pets').insert({
     owner_id: currentUser.id,
@@ -469,9 +469,12 @@ async function loadAccountData() {
   $('accountDashboard').hidden = false;
   $('accountGreeting').textContent = 'Hola, ' + ((currentProfile && currentProfile.full_name) || currentUser.email);
   $('accountEmailText').textContent = currentUser.email || '';
+  isStaff = !!(currentUser.app_metadata && currentUser.app_metadata.role === 'staff');
+  let petsQuery = client.from('pets').select('id,owner_id,name,species,breed,age_text,weight_kg,notes,created_at').order('created_at',{ascending:false});
+  if (!isStaff) petsQuery = petsQuery.eq('owner_id',currentUser.id);
   const [profileResult,petsResult] = await Promise.all([
     client.from('profiles').select('id,full_name,phone').eq('id',currentUser.id).maybeSingle(),
-    client.from('pets').select('id,name,species,breed,age_text,weight_kg,notes,created_at').eq('owner_id',currentUser.id).order('created_at',{ascending:false})
+    petsQuery
   ]);
   if (profileResult.error) setStatus('profileStatus',safeError(profileResult.error),true);
   else {
@@ -488,9 +491,10 @@ async function loadAccountData() {
     currentPets = [];
   } else currentPets = petsResult.data || [];
   renderPets();
+  const petHeading = document.querySelector('#accountDashboard .account-columns section:first-child h3');
+  if (petHeading) petHeading.textContent = isStaff ? 'Mascotas registradas' : 'Mis mascotas';
   await loadAppointmentsInto($('accountAppointments'),null);
   await loadMedicalRecords();
-  isStaff = !!(currentUser.app_metadata && currentUser.app_metadata.role === 'staff');
   $('staffPanel').hidden = !isStaff;
   $('staffActivationForm').hidden = isStaff;
   if (isStaff) await loadStaffData();
