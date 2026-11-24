@@ -326,7 +326,11 @@ async function ensurePetForUser(data) {
 }
 
 async function confirmBooking() {
-  if (!pendingBooking || !client) return;
+  if (!pendingBooking) return;
+  if (!client) {
+    toast('No se pudo conectar con la base de datos. Revisa tu conexión e inténtalo de nuevo.',true);
+    return;
+  }
   const button = $('confirmBooking');
   button.disabled = true;
   button.textContent = 'Enviando...';
