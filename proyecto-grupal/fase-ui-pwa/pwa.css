@@ -158,7 +158,7 @@ body.dark-theme .emergency-section{background:#3a2b27}
 .emergency-inner .eyebrow{margin-bottom:4px;color:#99634e}
 .emergency-inner h2{color:#663f34;font-size:28px}
 .emergency-inner p{max-width:670px;margin:5px 0 0;color:#816b60;font-size:11px;line-height:1.6}
-body.dark-theme .emergency-inner h2{color:#f1d7ca}
+body.dark-theme .emergency-inner .eyebrow{color:#f0b49d}body.dark-theme .emergency-inner h2{color:#f1d7ca}
 body.dark-theme .emergency-inner p{color:#e0c9bd}
 .button-light{margin-left:auto;flex:0 0 auto}
 .site-footer{padding-block:28px 20px;background:#203b30;color:#eef4ee}
