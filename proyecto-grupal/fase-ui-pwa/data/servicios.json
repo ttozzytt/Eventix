@@ -58,9 +58,9 @@
     "priceValue": null,
     "priceLabel": "Consultar",
     "tag": "CUIDADO",
-    "image": "https://images.pexels.com/photos/6235650/pexels-photo-6235650.jpeg?cs=srgb&dl=pexels-tima-miroshnichenko-6235650.jpg&fm=jpg",
+    "image": "https://images.pexels.com/photos/7469213/pexels-photo-7469213.jpeg?auto=compress&dpr=1&h=750&w=1260",
     "species": "Perros",
-    "imageAlt": "Atención veterinaria canina",
+    "imageAlt": "Veterinario preparando la vacuna para un perro",
     "fallbackImage": "./imagenes/consulta.svg"
   },
   {
@@ -74,9 +74,9 @@
     "priceValue": null,
     "priceLabel": "Consultar",
     "tag": "CUIDADO",
-    "image": "https://images.pexels.com/photos/39550277/pexels-photo-39550277.jpeg?cs=srgb&dl=pexels-ali-merchant-2164245251-39550277.jpg&fm=jpg",
+    "image": "https://images.pexels.com/photos/6816869/pexels-photo-6816869.jpeg?auto=compress&dpr=1&h=750&w=1260",
     "species": "Gatos",
-    "imageAlt": "Atención veterinaria felina",
+    "imageAlt": "Veterinaria aplicando una vacuna a un gato",
     "fallbackImage": "./imagenes/gato.svg"
   },
   {
