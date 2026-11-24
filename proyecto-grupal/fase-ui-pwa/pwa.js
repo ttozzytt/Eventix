@@ -1,4 +1,64 @@
 (() => {
+  'use strict';
+  const main = document.querySelector('main.app-views');
+  if (!main) return;
+  const views = Array.from(main.querySelectorAll(':scope > .app-view'));
+  const findView = hash => {
+    const id = String(hash || '').replace(/^#/,'');
+    if (!id) return views[0] || null;
+    const target = document.getElementById(id);
+    return (target && target.closest('.app-view')) || views.find(view => view.id === 'view-' + id) || null;
+  };
+  const showView = target => {
+    const view = typeof target === 'string' ? findView(target) : target;
+    if (!view || !views.includes(view)) return;
+    views.forEach(item => {
+      const active = item === view;
+      item.classList.toggle('active',active);
+      item.setAttribute('aria-hidden',String(!active));
+    });
+    const name = view.dataset.viewName || view.id.replace('view-','');
+    document.querySelectorAll('.main-nav a,.mobile-nav a').forEach(link => {
+      const active = findView(link.getAttribute('href')) === view;
+      link.classList.toggle('active',active);
+      if (active) link.setAttribute('aria-current','page');
+      else link.removeAttribute('aria-current');
+    });
+    if (location.hash !== '#' + name && history.replaceState) {
+      const firstId = view.id === 'view-inicio' ? 'inicio' : (view.querySelector('[id]')?.id || name);
+      history.replaceState(null,'','#' + firstId);
+    }
+    view.scrollTop = 0;
+    window.scrollTo({top:0,behavior:'auto'});
+    document.dispatchEvent(new CustomEvent('appviewchange',{detail:{name}}));
+  };
+  document.addEventListener('click',event => {
+    const link = event.target.closest('a[href^="#"]');
+    if (!link) return;
+    const view = findView(link.getAttribute('href'));
+    if (!view) return;
+    event.preventDefault();
+    showView(view);
+    const menu = document.getElementById('mobileNav');
+    const toggle = document.getElementById('menuToggle');
+    if (menu && menu.classList.contains('open')) {
+      menu.classList.remove('open');
+      if (toggle) {
+        toggle.setAttribute('aria-expanded','false');
+        toggle.setAttribute('aria-label','Abrir menú');
+        toggle.textContent = '☰';
+      }
+    }
+  },true);
+  window.addEventListener('hashchange',() => {
+    const view = findView(location.hash);
+    if (view) showView(view);
+  });
+  window.appShowView = target => showView(target);
+  const initial = findView(location.hash) || views[0];
+  showView(initial);
+})();
+(() => {
 'use strict';
 
 const SUPABASE_URL = 'https://xjikajydwcdicrtcvhmf.supabase.co';
