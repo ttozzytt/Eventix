@@ -1,5 +1,5 @@
 'use strict';
-const CACHE_NAME = "pata-andina-v15-clinica-20261124";
+const CACHE_NAME = "pata-andina-v16-catalogo-imagenes-20261124";
 const APP_SHELL = [
   "./",
   "./index.html",
