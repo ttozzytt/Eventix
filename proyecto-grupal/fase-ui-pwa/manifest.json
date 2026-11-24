@@ -1,12 +1,12 @@
 {
   "id": "./pwa.html",
-  "name": "Pata Andina Vet | Centro Veterinario",
+  "name": "Pata Andina · Centro Veterinario",
   "short_name": "Pata Andina",
-  "description": "Catálogo académico de servicios veterinarios para perros y gatos, con reservas locales y modo offline.",
+  "description": "Atención veterinaria para perros y gatos, con información de servicios, cuidados y solicitudes de turno.",
   "start_url": "./pwa.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#fbfaf6",
+  "background_color": "#f7f6f1",
   "theme_color": "#315d4d",
   "orientation": "any",
   "icons": [
