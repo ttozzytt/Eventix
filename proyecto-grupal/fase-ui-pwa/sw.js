@@ -1,5 +1,5 @@
 'use strict';
-const CACHE_NAME = "pata-andina-v21-supabase-final-20261124";
+const CACHE_NAME = "pata-andina-v22-navegacion-20261124";
 const APP_SHELL = [
   "./",
   "./index.html",
