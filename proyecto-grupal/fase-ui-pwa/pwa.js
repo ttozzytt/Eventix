@@ -450,7 +450,46 @@ function renderPets() {
       const card = make('article','pet-row');
       const info = make('div','pet-info');
       info.append(make('b','',pet.name),make('p','',[pet.species,pet.age_text,pet.breed].filter(Boolean).join(' · ')));
-      card.append(info,make('span','appointment-state','Registrada'));
+      card.append(info);
+      if (!isStaff) {
+        const details = document.createElement('details');
+        details.className = 'pet-editor';
+        const summary = make('summary','','Editar datos');
+        const form = make('form','pet-edit-form');
+        form.dataset.editPet = pet.id;
+        const nameLabel = make('label','pet-edit-field','Nombre');
+        const nameInput = document.createElement('input');
+        nameInput.name = 'name';
+        nameInput.maxLength = 60;
+        nameInput.required = true;
+        nameInput.value = pet.name;
+        nameLabel.append(nameInput);
+        const speciesLabel = make('label','pet-edit-field','Especie');
+        const speciesSelect = document.createElement('select');
+        speciesSelect.name = 'species';
+        ['Perro','Gato','Otra especie'].forEach(value=>speciesSelect.add(new Option(value,value)));
+        speciesSelect.value = pet.species;
+        speciesLabel.append(speciesSelect);
+        const ageLabel = make('label','pet-edit-field','Edad');
+        const ageInput = document.createElement('input');
+        ageInput.name = 'age_text';
+        ageInput.maxLength = 40;
+        ageInput.value = pet.age_text || '';
+        ageLabel.append(ageInput);
+        const breedLabel = make('label','pet-edit-field','Raza');
+        const breedInput = document.createElement('input');
+        breedInput.name = 'breed';
+        breedInput.maxLength = 80;
+        breedInput.value = pet.breed || '';
+        breedLabel.append(breedInput);
+        const save = make('button','button button-outline','Guardar cambios');
+        save.type = 'submit';
+        form.append(nameLabel,speciesLabel,ageLabel,breedLabel,save);
+        details.append(summary,form);
+        card.append(details);
+      } else {
+        card.append(make('span','appointment-state','Registrada'));
+      }
       list.append(card);
     });
   }
@@ -603,6 +642,38 @@ async function savePet(event) {
 }
 
 
+async function updatePetDetails(event) {
+  const form = event.target.closest('form[data-edit-pet]');
+  if (!form || isStaff) return;
+  event.preventDefault();
+  const fields = form.elements;
+  const name = fields.namedItem('name').value.trim();
+  const species = fields.namedItem('species').value;
+  const age = fields.namedItem('age_text').value.trim();
+  const breed = fields.namedItem('breed').value.trim();
+  if (!name || !['Perro','Gato','Otra especie'].includes(species)) {
+    toast('Revisa el nombre y la especie.',true);
+    return;
+  }
+  const save = form.querySelector('button[type="submit"]');
+  save.disabled = true;
+  const result = await client.from('pets')
+    .update({name,species,age_text:age||null,breed:breed||null})
+    .eq('id',form.dataset.editPet)
+    .eq('owner_id',currentUser.id)
+    .select('id,owner_id,name,species,age_text,breed')
+    .single();
+  save.disabled = false;
+  if (result.error) {
+    toast(safeError(result.error),true);
+    return;
+  }
+  currentPets = currentPets.map(pet=>pet.id===result.data.id?result.data:pet);
+  renderPets();
+  await loadMedicalRecords();
+  toast('Datos de la mascota actualizados.');
+}
+
 function setAuthMode(mode) {
   authMode = mode;
   const signup = mode === 'signup';
@@ -753,6 +824,7 @@ function renderAppointmentCountGuest() {
 }
 
 function bindEvents() {
+  document.addEventListener('submit',updatePetDetails);
   document.addEventListener('click',event=>{
     const link = event.target.closest('a[href^="#"]');
     if (link && link.closest('.mobile-nav')) closeMenu();
