@@ -250,9 +250,9 @@
     "priceValue": 300,
     "priceLabel": "Bs 300",
     "tag": "CONTROL ANUAL",
-    "image": "https://images.pexels.com/photos/6235229/pexels-photo-6235229.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+    "image": "https://images.pexels.com/photos/6234607/pexels-photo-6234607.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
     "species": "Perros y gatos",
-    "imageAlt": "Veterinaria realizando una ecografía a un perro",
+    "imageAlt": "Veterinario realizando una ecografía a un perro",
     "fallbackImage": "./imagenes/imagenologia.svg"
   }
 ]
