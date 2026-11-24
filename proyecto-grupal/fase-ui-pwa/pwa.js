@@ -822,7 +822,6 @@ function bindEvents() {
       serviceName:service.name,
       priceLabel:service.priceLabel || money(service.priceValue),
       priceValue:service.priceValue,
-      priceSourceUrl:null,
       duration:service.duration,
       date:$('bookingDate').value,
       time:$('bookingTime').value,
