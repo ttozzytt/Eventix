@@ -1,10 +1,9 @@
 'use strict';
-const CACHE_NAME = "pata-andina-v14-clinica-20261124";
+const CACHE_NAME = "pata-andina-v15-clinica-20261124";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./index.css",
-  "./index.js",
+
   "./pwa.html",
   "./pwa.css",
   "./pwa.js",
