@@ -270,3 +270,6 @@ body.dark-theme .field-error{color:#f0a693}
 .staff-panel .account-form{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
 @media(max-width:760px){.account-columns{grid-template-columns:1fr}.account-welcome{align-items:flex-start;flex-direction:column}.account-welcome>.button{width:100%}.staff-appointment{flex-direction:column}.staff-actions{width:100%}}
 @media(max-width:520px){.account-form-grid{grid-template-columns:1fr}.account-form .field.full{grid-column:auto}.auth-card,.account-card{padding:16px}.account-welcome{padding:16px}.account-welcome h3{font-size:25px}.account-card h3{font-size:22px}.auth-tab{font-size:11px}}
+
+.staff-activation{border-style:dashed}
+.staff-activation p{margin:0;color:var(--muted);font-size:12px}
