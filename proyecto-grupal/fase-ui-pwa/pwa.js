@@ -635,7 +635,7 @@ async function handleAuth(event) {
         email,
         password,
         options: {
-          data: {full_name:fullName},
+          data: {full_name:fullName,phone:phone||null},
           emailRedirectTo:window.location.origin + window.location.pathname
         }
       });
