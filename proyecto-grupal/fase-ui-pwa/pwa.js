@@ -125,7 +125,6 @@ function renderServices(items,keepPage=false) {
     body.append(detailButton,detail);
     const bottom = make('div','service-bottom');
     const price = make('strong','service-price',service.priceLabel || money(service.priceValue));
-    price.append(make('small','',service.priceValue === null ? 'Consultar antes de atender' : 'Tarifa'));
     const button = make('button','service-select','Solicitar ↗');
     button.type = 'button';
     button.dataset.bookService = service.id;
