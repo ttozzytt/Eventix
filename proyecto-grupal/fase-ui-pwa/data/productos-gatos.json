@@ -4,8 +4,8 @@
     "name": "Alimento según su etapa",
     "kind": "Orientación nutricional",
     "presentation": "Gatitos, adultos y gatos mayores",
-    "description": "La fórmula debe corresponder a la etapa de vida y a las necesidades del gato.",
-    "image": "https://images.pexels.com/photos/32960964/pexels-photo-32960964.jpeg?cs=srgb&dl=pexels-d-ng-nhan-324384-32960964.jpg&fm=jpg",
+    "description": "La fórmula debe corresponder a la edad y a las necesidades nutricionales de cada gato.",
+    "image": "https://images.pexels.com/photos/32960964/pexels-photo-32960964.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
     "imageAlt": "Gato comiendo de su plato",
     "guidance": "Antes de cambiar el alimento, revisa el empaque y consulta si tu gato tiene una condición de salud."
   },
@@ -14,9 +14,9 @@
     "name": "Alimento húmedo",
     "kind": "Hidratación y variedad",
     "presentation": "Sobres y latas según fabricante",
-    "description": "Puede complementar la alimentación y aportar humedad, siempre que sea completo o se combine correctamente.",
-    "image": "https://images.pexels.com/photos/16618557/pexels-photo-16618557.jpeg?cs=srgb&dl=pexels-eduardo-lopez-242403618-16618557.jpg&fm=jpg",
-    "imageAlt": "Gato comiendo alimento seco",
+    "description": "Los alimentos húmedos pueden aportar agua y variedad. Revisa que el producto sea completo o que esté indicado como complemento.",
+    "image": "https://images.pexels.com/photos/16618541/pexels-photo-16618541.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+    "imageAlt": "Gato mirando su plato de comida",
     "guidance": "Deja agua fresca disponible y confirma la ración indicada para su peso."
   },
   {
@@ -24,9 +24,9 @@
     "name": "Cambio gradual de alimento",
     "kind": "Cambio de dieta",
     "presentation": "Transición progresiva",
-    "description": "Al cambiar de marca o fórmula, una transición gradual ayuda a observar la tolerancia del gato.",
-    "image": "https://images.pexels.com/photos/32960964/pexels-photo-32960964.jpeg?cs=srgb&dl=pexels-d-ng-nhan-324384-32960964.jpg&fm=jpg",
-    "imageAlt": "Gato junto a su plato de alimento",
+    "description": "Los cambios de fórmula o marca deben hacerse de manera gradual y observando la tolerancia del gato.",
+    "image": "https://images.pexels.com/photos/5822458/pexels-photo-5822458.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+    "imageAlt": "Gato comiendo de un recipiente",
     "guidance": "Consulta si aparecen vómitos, diarrea, pérdida del apetito u otras molestias."
   },
   {
@@ -34,9 +34,9 @@
     "name": "Porciones según su peso",
     "kind": "Ración diaria",
     "presentation": "Cantidad indicada en el envase y ajustada al paciente",
-    "description": "La actividad, edad, condición corporal y estado de salud influyen en la cantidad de alimento.",
-    "image": "https://images.pexels.com/photos/16618557/pexels-photo-16618557.jpeg?cs=srgb&dl=pexels-eduardo-lopez-242403618-16618557.jpg&fm=jpg",
-    "imageAlt": "Alimento seco para gatos",
+    "description": "La ración depende del peso, la edad, la actividad y la condición corporal; no todos los gatos necesitan la misma cantidad.",
+    "image": "https://images.pexels.com/photos/16618549/pexels-photo-16618549.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+    "imageAlt": "Gato acercándose a su plato de comida",
     "guidance": "No todas las mascotas necesitan la misma cantidad; evita calcular la ración solo por intuición."
   },
   {
@@ -44,9 +44,9 @@
     "name": "Alimentación de gatitos",
     "kind": "Etapa de crecimiento",
     "presentation": "Fórmula apropiada para gatitos",
-    "description": "Durante el crecimiento es importante utilizar una fórmula completa apropiada para la edad.",
-    "image": "https://images.pexels.com/photos/6816859/pexels-photo-6816859.jpeg?cs=srgb&dl=pexels-gustavo-fring-6816859.jpg&fm=jpg",
-    "imageAlt": "Gato durante una revisión veterinaria",
+    "description": "Durante el crecimiento se necesita un alimento completo formulado para gatitos y una ración apropiada para su etapa.",
+    "image": "https://images.pexels.com/photos/12467776/pexels-photo-12467776.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+    "imageAlt": "Gatitos acercándose a recipientes de comida",
     "guidance": "El veterinario puede orientar la cantidad, frecuencia y momento adecuado para pasar a alimento adulto."
   },
   {
@@ -54,9 +54,9 @@
     "name": "Dietas especiales",
     "kind": "Indicación profesional",
     "presentation": "Según evaluación veterinaria",
-    "description": "Algunas condiciones requieren una dieta específica y seguimiento profesional.",
-    "image": "https://images.pexels.com/photos/16618557/pexels-photo-16618557.jpeg?cs=srgb&dl=pexels-eduardo-lopez-242403618-16618557.jpg&fm=jpg",
-    "imageAlt": "Alimento seco para gatos",
+    "description": "Las dietas terapéuticas se seleccionan según el diagnóstico y deben mantenerse con seguimiento veterinario.",
+    "image": "https://images.pexels.com/photos/16618557/pexels-photo-16618557.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+    "imageAlt": "Gato comiendo de un plato",
     "guidance": "No sustituyas una dieta terapéutica ni administres suplementos sin orientación profesional."
   }
 ]
