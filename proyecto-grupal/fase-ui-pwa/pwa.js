@@ -490,6 +490,7 @@ async function loadAccountData() {
   await loadMedicalRecords();
   isStaff = !!(currentUser.app_metadata && currentUser.app_metadata.role === 'staff');
   $('staffPanel').hidden = !isStaff;
+  $('staffActivationForm').hidden = isStaff;
   if (isStaff) await loadStaffData();
 }
 
@@ -689,6 +690,28 @@ async function resetPassword() {
   setStatus('authStatus','Si el correo está registrado, recibirás un enlace para restablecer tu contraseña.');
 }
 
+async function activateClinicStaff(event) {
+  event.preventDefault();
+  const code = $('staffActivationCode').value.trim();
+  if (code.length < 32) return setStatus('staffActivationStatus','Ingresa el código completo.',true);
+  $('staffActivationSubmit').disabled = true;
+  setStatus('staffActivationStatus','Validando código...');
+  try {
+    const result = await client.rpc('activate_clinic_staff',{activation_code:code});
+    if (result.error) throw result.error;
+    const refreshed = await client.auth.refreshSession();
+    if (refreshed.error) throw refreshed.error;
+    currentUser = refreshed.data.user;
+    $('staffActivationCode').value = '';
+    await loadAccountData();
+    toast('Acceso de personal activado.');
+  } catch (error) {
+    setStatus('staffActivationStatus',safeError(error),true);
+  } finally {
+    $('staffActivationSubmit').disabled = false;
+  }
+}
+
 async function staffUpdateStatus(id,status) {
   const result = await client.from('appointment_requests').update({status}).eq('id',id);
   if (result.error) return toast(safeError(result.error),true);
@@ -830,6 +853,7 @@ function bindEvents() {
   $('accountPhone').addEventListener('input',event=>event.target.value=event.target.value.replace(/\D/g,'').slice(0,8));
   $('petForm').addEventListener('submit',savePet);
   $('medicalRecordForm').addEventListener('submit',saveMedicalRecord);
+  $('staffActivationForm').addEventListener('submit',activateClinicStaff);
   document.addEventListener('keydown',event=>{
     if (event.key==='Escape') {
       closeBookingModal();
