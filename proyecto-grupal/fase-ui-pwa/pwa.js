@@ -15,6 +15,8 @@ const make = (tag, className, value) => {
 
 let client = null;
 let authMode = 'login';
+let servicePage = 1;
+let filteredServices = [];
 let currentUser = null;
 let currentProfile = null;
 let currentPets = [];
@@ -79,15 +81,20 @@ function bindPhotoFallbacks() {
   });
 }
 
-function renderServices(items) {
+function renderServices(items,keepPage=false) {
   const grid = $('serviceGrid');
   if (!grid) return;
+  filteredServices = items;
   grid.replaceChildren();
-  if (!items.length) {
-    grid.append(make('p','empty-catalog','No hay servicios disponibles.'));
-    return;
+  const pageSize = () => window.innerWidth <= 620 ? 4 : 6;
+  const pageCount = Math.max(1,Math.ceil(items.length/pageSize()));
+  if (!keepPage) servicePage = 1;
+  servicePage = Math.min(Math.max(servicePage,1),pageCount);
+  const visible = items.slice((servicePage-1)*pageSize(),servicePage*pageSize());
+  if (!visible.length) {
+    grid.append(make('p','empty-catalog','No hay servicios que coincidan con la búsqueda.'));
   }
-  items.forEach(service => {
+  visible.forEach(service => {
     const card = make('article','service-card');
     const art = make('div','service-art');
     const image = make('img');
@@ -118,7 +125,7 @@ function renderServices(items) {
     body.append(detailButton,detail);
     const bottom = make('div','service-bottom');
     const price = make('strong','service-price',service.priceLabel || money(service.priceValue));
-    price.append(make('small','',service.priceValue === null ? 'Consultar antes de atender' : 'Precio publicado de referencia'));
+    price.append(make('small','',service.priceValue === null ? 'Consultar antes de atender' : 'Tarifa'));
     const button = make('button','service-select','Solicitar ↗');
     button.type = 'button';
     button.dataset.bookService = service.id;
@@ -127,9 +134,24 @@ function renderServices(items) {
     card.append(art,body);
     grid.append(card);
   });
-  $('catalogStatus').textContent = items.length + ' servicios disponibles.';
+  const pager = $('servicePager');
+  pager.replaceChildren();
+  if (items.length > pageSize()) {
+    const previous = make('button','pager-button','← Anterior');
+    previous.type = 'button';
+    previous.dataset.page = 'prev';
+    previous.disabled = servicePage === 1;
+    const label = make('span','', 'Página ' + servicePage + ' de ' + pageCount);
+    const next = make('button','pager-button','Siguiente →');
+    next.type = 'button';
+    next.dataset.page = 'next';
+    next.disabled = servicePage === pageCount;
+    pager.append(previous,label,next);
+    pager.hidden = false;
+  } else {
+    pager.hidden = true;
+  }
 }
-
 function mapService(row) {
   return {
     id: row.id,
@@ -426,10 +448,7 @@ function renderPets() {
       const card = make('article','pet-row');
       const info = make('div','pet-info');
       info.append(make('b','',pet.name),make('p','',[pet.species,pet.age_text,pet.breed].filter(Boolean).join(' · ')));
-      const remove = make('button','cancel-button','Quitar');
-      remove.type = 'button';
-      remove.dataset.removePet = pet.id;
-      card.append(info,remove);
+      card.append(info,make('span','appointment-state','Registrada'));
       list.append(card);
     });
   }
@@ -573,15 +592,6 @@ async function savePet(event) {
   setStatus('petStatus','Mascota registrada.');
 }
 
-async function removePet(id) {
-  if (!confirm('¿Quitar esta mascota de tu cuenta?')) return;
-  const result = await client.from('pets').delete().eq('id',id);
-  if (result.error) return toast(safeError(result.error),true);
-  currentPets = currentPets.filter(pet=>pet.id!==id);
-  renderPets();
-  await loadMedicalRecords();
-  toast('Mascota quitada de tu cuenta.');
-}
 
 function setAuthMode(mode) {
   authMode = mode;
@@ -714,6 +724,12 @@ function bindEvents() {
   document.addEventListener('click',event=>{
     const link = event.target.closest('a[href^="#"]');
     if (link && link.closest('.mobile-nav')) closeMenu();
+    const page = event.target.closest('#servicePager [data-page]');
+    if (page) {
+      servicePage += page.dataset.page === 'next' ? 1 : -1;
+      renderServices(filteredServices,true);
+      return;
+    }
     const detail = event.target.closest('[data-detail-id]');
     if (detail) {
       const panel = detail.nextElementSibling;
@@ -736,11 +752,6 @@ function bindEvents() {
       cancelAppointment(cancel.dataset.cancelAppointment);
       return;
     }
-    const remove = event.target.closest('[data-remove-pet]');
-    if (remove) {
-      removePet(remove.dataset.removePet);
-      return;
-    }
     const staff = event.target.closest('[data-staff-status]');
     if (staff) {
       staffUpdateStatus(staff.dataset.appointmentId,staff.dataset.staffStatus);
@@ -748,6 +759,9 @@ function bindEvents() {
     }
   });
 
+  window.addEventListener('resize',()=>{
+    if (services.length) renderServices(filteredServices,true);
+  },{passive:true});
   $('serviceSearch').addEventListener('input',()=>{
     const term = $('serviceSearch').value.trim().toLocaleLowerCase('es-BO');
     const filtered = services.filter(item=>(item.name+' '+item.description+' '+item.category+' '+item.species).toLocaleLowerCase('es-BO').includes(term));
