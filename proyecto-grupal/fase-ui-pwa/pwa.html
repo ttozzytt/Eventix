@@ -63,6 +63,13 @@
 <div><span class="eyebrow">SESIÓN ACTIVA</span><h3 id="accountGreeting">Hola</h3><p id="accountEmailText"></p></div>
 <button class="button button-outline" id="signOutButton" type="button">Cerrar sesión</button>
 </div>
+<form id="staffActivationForm" class="account-card staff-activation account-form" novalidate>
+<h3>Acceso de personal</h3>
+<p>Activa el acceso de administración de la clínica en esta cuenta.</p>
+<label class="field"><span>Código de activación</span><input id="staffActivationCode" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="128" required type="password"/></label>
+<button class="button button-outline" id="staffActivationSubmit" type="submit">Activar acceso</button>
+<p class="account-status" id="staffActivationStatus" aria-live="polite"></p>
+</form>
 <form id="profileForm" class="account-card account-form" novalidate>
 <h3>Mis datos</h3>
 <div class="account-form-grid">
