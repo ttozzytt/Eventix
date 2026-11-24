@@ -273,3 +273,11 @@ body.dark-theme .field-error{color:#f0a693}
 
 .staff-activation{border-style:dashed}
 .staff-activation p{margin:0;color:var(--muted);font-size:12px}
+
+.pet-editor{min-width:130px}
+.pet-editor summary{color:var(--primary);font-size:11px;font-weight:750;cursor:pointer;list-style-position:inside}
+.pet-edit-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-width:min(300px,70vw);margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-soft)}
+.pet-edit-field{display:grid;gap:4px;color:var(--muted);font-size:10px;font-weight:700}
+.pet-edit-field input,.pet-edit-field select{width:100%;min-width:0;min-height:38px;padding:7px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font-size:12px}
+.pet-edit-form .button{grid-column:1/-1;min-height:40px}
+@media(max-width:520px){.pet-row{align-items:stretch;flex-direction:column}.pet-editor{width:100%}.pet-edit-form{min-width:0}}
