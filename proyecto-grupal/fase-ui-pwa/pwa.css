@@ -762,3 +762,17 @@ body.dark-theme .brand-logo{filter:brightness(1.12)}
   body{grid-template-rows:minmax(0,1fr) 22px;grid-template-areas:"header content" "header status"}
   .site-header{height:100%;min-height:0}
 }
+
+/* Navegación móvil más baja sin reducir el área táctil ni cortar el safe-area de iOS. */
+@media(max-width:1023px) and (orientation:portrait){
+  body{grid-template-rows:58px minmax(0,1fr) 20px calc(100px + env(safe-area-inset-bottom))}
+  .site-header{height:58px;min-height:58px;padding-block:6px}
+  .mobile-nav{
+    min-height:calc(100px + env(safe-area-inset-bottom));
+    max-height:calc(106px + env(safe-area-inset-bottom));
+    grid-auto-rows:44px;
+    gap:3px;
+    padding:4px 8px calc(4px + env(safe-area-inset-bottom));
+  }
+  .mobile-nav a{min-height:44px;padding:4px 3px;font-size:9px;line-height:1.12}
+}
