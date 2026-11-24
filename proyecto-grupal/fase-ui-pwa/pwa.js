@@ -349,7 +349,6 @@ async function confirmBooking() {
       service_id: data.serviceId,
       service_name: data.serviceName,
       price_label: data.priceLabel,
-      price_source_url: data.priceSourceUrl || null,
       duration_minutes: data.duration,
       requested_date: data.date,
       requested_time: data.time,
