@@ -1,65 +1,907 @@
-
-
-
 (() => {
-  'use strict';
-  const main=document.querySelector('main.app-views');
-  if(!main)return;
-  const views=Array.from(main.querySelectorAll(':scope > .app-view'));
-  function findView(hash){const id=String(hash||'').replace(/^#/,'');if(!id)return views[0];const target=document.getElementById(id);return target?.closest('.app-view')||views.find(v=>v.id===`view-${id}`)||null;}
-  function showView(target){const view=typeof target==='string'?findView(target):target;if(!view||!views.includes(view))return;
-    views.forEach(v=>{const active=v===view;v.classList.toggle('active',active);v.setAttribute('aria-hidden',String(!active));});
-    const label=view.dataset.viewName||view.id.replace('view-','');
-    document.querySelectorAll('.main-nav a,.mobile-nav a').forEach(a=>{const targetView=findView(a.getAttribute('href'));a.classList.toggle('active',targetView===view);if(targetView===view)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
-    view.scrollTop=0;
-    const anchor=label==='inicio'?'inicio':(view.querySelector('[id]')?.id||label);
-    if(location.hash!==`#${anchor}`)history.replaceState(null,'',`#${anchor}`);
-    document.dispatchEvent(new CustomEvent('appviewchange',{detail:{name:label}}));
+'use strict';
+
+const SUPABASE_URL = 'https://xjikajydwcdicrtcvhmf.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_COnaqUWHWC1Q-QfRZ__YSA_wtRCdR3y';
+const THEME_KEY = 'pata_andina_theme_v2';
+const $ = id => document.getElementById(id);
+const qa = (selector, root=document) => Array.from(root.querySelectorAll(selector));
+const make = (tag, className, value) => {
+  const element = document.createElement(tag);
+  if (className) element.className = className;
+  if (value !== undefined && value !== null) element.textContent = String(value);
+  return element;
+};
+
+let client = null;
+let authMode = 'login';
+let currentUser = null;
+let currentProfile = null;
+let currentPets = [];
+let services = [];
+let pendingBooking = null;
+let toastTimer = null;
+let menuOpen = false;
+let guestNotice = '';
+let isStaff = false;
+
+const today = () => {
+  const date = new Date();
+  return date.getFullYear() + '-' + String(date.getMonth()+1).padStart(2,'0') + '-' + String(date.getDate()).padStart(2,'0');
+};
+const money = value => value === null || value === undefined || value === '' ? 'Consultar' : 'Bs ' + Number(value).toLocaleString('es-BO');
+const selectedService = () => services.find(item => item.id === $('serviceSelect').value) || null;
+const setStatus = (id, message, error=false) => {
+  const node = $(id);
+  if (!node) return;
+  node.textContent = message;
+  node.classList.toggle('error', error);
+};
+const toast = (message, error=false) => {
+  const node = $('toast');
+  if (!node) return;
+  node.textContent = message;
+  node.classList.toggle('error', error);
+  node.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => node.classList.remove('show'), 4200);
+};
+const safeError = error => {
+  const message = String(error && (error.message || error) || '');
+  if (/duplicate key|unique constraint/i.test(message)) return 'Ya existe un registro con esos datos.';
+  if (/horario solicitado|overlap|exclusion/i.test(message)) return 'Ese horario ya no está disponible. Elige otra hora.';
+  if (/row-level security|permission denied|42501/i.test(message)) return 'La cuenta no tiene permiso para realizar esta operación.';
+  if (/invalid login credentials/i.test(message)) return 'Correo o contraseña incorrectos.';
+  if (/email not confirmed/i.test(message)) return 'Confirma tu correo electrónico antes de iniciar sesión.';
+  return message || 'No se pudo completar la operación. Intenta nuevamente.';
+};
+
+function initSupabase() {
+  if (!window.supabase || typeof window.supabase.createClient !== 'function') return false;
+  client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+  });
+  return true;
+}
+
+function bindPhotoFallbacks() {
+  const pairs = [['.hero-visual img','./imagenes/portada-veterinaria.svg'],['.food-banner img','./imagenes/gato.svg']];
+  pairs.forEach(([selector,fallback]) => {
+    const image = document.querySelector(selector);
+    if (!image) return;
+    const apply = () => {
+      if (image.dataset.fallbackApplied === 'true') return;
+      image.dataset.fallbackApplied = 'true';
+      image.src = fallback;
+    };
+    image.addEventListener('error', apply, {once:true});
+    if (image.complete && image.naturalWidth === 0) apply();
+  });
+}
+
+function renderServices(items) {
+  const grid = $('serviceGrid');
+  if (!grid) return;
+  grid.replaceChildren();
+  if (!items.length) {
+    grid.append(make('p','empty-catalog','No hay servicios disponibles.'));
+    return;
   }
-  document.addEventListener('click',event=>{const link=event.target.closest('a[href^="#"]');if(!link)return;const view=findView(link.getAttribute('href'));if(!view)return;event.preventDefault();showView(view);},{capture:true});
-  window.addEventListener('hashchange',()=>{const view=findView(location.hash);if(view)showView(view)});
-  window.appShowView=(name)=>showView(name);
-  const initial=findView(location.hash);showView(initial||views[0]);
-})();
+  items.forEach(service => {
+    const card = make('article','service-card');
+    const art = make('div','service-art');
+    const image = make('img');
+    image.src = service.image;
+    image.alt = service.imageAlt || 'Atención veterinaria';
+    image.loading = 'lazy';
+    image.decoding = 'async';
+    image.width = 480;
+    image.height = 280;
+    image.addEventListener('error', () => {
+      if (image.dataset.fallbackApplied === 'true') return;
+      image.dataset.fallbackApplied = 'true';
+      image.src = service.fallbackImage || './imagenes/consulta.svg';
+    }, {once:true});
+    art.append(image, make('span','service-tag',service.tag || 'ATENCIÓN'));
+    const body = make('div','service-body');
+    const meta = make('div','service-meta');
+    meta.append(make('span','',String(service.category || '').toUpperCase()),make('span','',service.durationLabel || (service.duration+' min aprox.')));
+    body.append(meta,make('h3','',service.name),make('p','',service.description));
+    const detailButton = make('button','service-detail-toggle','Qué incluye +');
+    detailButton.type = 'button';
+    detailButton.dataset.detailId = service.id;
+    detailButton.setAttribute('aria-expanded','false');
+    const detail = make('p','service-detail',service.details || '');
+    detail.id = 'service-detail-' + service.id;
+    detail.hidden = true;
+    detailButton.setAttribute('aria-controls',detail.id);
+    body.append(detailButton,detail);
+    const bottom = make('div','service-bottom');
+    const price = make('strong','service-price',service.priceLabel || money(service.priceValue));
+    price.append(make('small','',service.priceValue === null ? 'Consultar antes de atender' : 'Precio publicado de referencia'));
+    const button = make('button','service-select','Solicitar ↗');
+    button.type = 'button';
+    button.dataset.bookService = service.id;
+    bottom.append(price,button);
+    body.append(bottom);
+    card.append(art,body);
+    grid.append(card);
+  });
+  $('catalogStatus').textContent = items.length + ' servicios disponibles.';
+}
 
+function mapService(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    category: row.category,
+    description: row.description,
+    details: row.details,
+    duration: Number(row.duration_minutes) || 30,
+    durationLabel: (Number(row.duration_minutes) || 30) + ' min aprox.',
+    priceValue: row.price_value === null ? null : Number(row.price_value),
+    priceLabel: row.price_label || money(row.price_value),
+    tag: row.tag || '',
+    image: row.image,
+    species: row.species,
+    imageAlt: row.image_alt,
+    fallbackImage: row.fallback_image
+  };
+}
 
+async function loadServices() {
+  try {
+    const result = await client.from('services_catalog')
+      .select('id,name,category,description,details,duration_minutes,price_value,price_label,tag,image,species,image_alt,fallback_image')
+      .eq('active',true)
+      .order('display_order');
+    if (result.error) throw result.error;
+    services = (result.data || []).map(mapService);
+    if (!services.length) throw new Error('El catálogo no tiene servicios activos.');
+    renderServices(services);
+  } catch (error) {
+    try {
+      const response = await fetch('./data/servicios.json');
+      if (!response.ok) throw new Error('No se pudo cargar el catálogo local.');
+      services = (await response.json()).filter(item => item && item.id && item.name);
+      renderServices(services);
+      $('catalogStatus').textContent = 'Catálogo local disponible; revisa tu conexión para actualizarlo.';
+    } catch (_) {
+      $('serviceGrid').replaceChildren(make('p','empty-catalog','No se pudo cargar el catálogo. Revisa tu conexión e inténtalo de nuevo.'));
+      setStatus('catalogStatus',safeError(error),true);
+    }
+  }
+  fillServiceSelect();
+  updateBookingSummary();
+}
 
-(()=>{'use strict';
-const KEY='pata_andina_solicitudes_v1',THEME='pata_andina_theme_v1';
-const $=id=>document.getElementById(id);const q=(selector,root=document)=>root.querySelector(selector);const qa=(selector,root=document)=>Array.from(root.querySelectorAll(selector));
-const fallbackServices=[{"id":"consulta-general","name":"Consulta veterinaria general","category":"consulta","description":"Revisión de salud para perros y gatos. Se evalúan sus antecedentes y condición general.","details":"Incluye entrevista al tutor, revisión de antecedentes y examen físico. Trae su carnet de vacunas y los estudios que tenga.","duration":30,"durationLabel":"30 min aprox.","priceValue":null,"priceLabel":"Consultar","tag":"ESENCIAL","image":"https://images.pexels.com/photos/6235650/pexels-photo-6235650.jpeg?cs=srgb&dl=pexels-tima-miroshnichenko-6235650.jpg&fm=jpg","species":"Perros y gatos","imageAlt":"Consulta veterinaria de un perro","fallbackImage":"./imagenes/consulta.svg"},{"id":"consulta-felina","name":"Consulta felina","category":"consulta","description":"Atención para gatos, con revisión de sus antecedentes y estado general.","details":"Se revisan apetito, peso, comportamiento y antecedentes. Trasládalo en un transportador seguro y lleva su carnet o análisis anteriores.","duration":35,"durationLabel":"35 min aprox.","priceValue":null,"priceLabel":"Consultar","tag":"GATITOS","image":"https://images.pexels.com/photos/6816859/pexels-photo-6816859.jpeg?cs=srgb&dl=pexels-gustavo-fring-6816859.jpg&fm=jpg","species":"Gatos","imageAlt":"Revisión veterinaria de un gato","fallbackImage":"./imagenes/gato.svg"},{"id":"control-cachorro","name":"Control de cachorro o gatito","category":"prevencion","description":"Seguimiento de crecimiento, peso, alimentación y desarrollo.","details":"Se controla su peso y desarrollo, y se revisan alimentación, vacunas y desparasitación que correspondan según la edad.","duration":25,"durationLabel":"25 min aprox.","priceValue":null,"priceLabel":"Consultar","tag":"PREVENCIÓN","image":"https://images.pexels.com/photos/6235650/pexels-photo-6235650.jpeg?cs=srgb&dl=pexels-tima-miroshnichenko-6235650.jpg&fm=jpg","species":"Cachorros y gatitos","imageAlt":"Control veterinario de una mascota","fallbackImage":"./imagenes/consulta.svg"},{"id":"vacuna-canina","name":"Vacunación canina","category":"prevencion","description":"Revisión del carnet y evaluación previa a la aplicación.","details":"Se comprueba el historial de vacunas y el estado de salud antes de definir cuál corresponde y cuándo aplicarla. Trae su carnet.","duration":20,"durationLabel":"20 min aprox.","priceValue":null,"priceLabel":"Consultar","tag":"CUIDADO","image":"https://images.pexels.com/photos/7469213/pexels-photo-7469213.jpeg?auto=compress&dpr=1&h=750&w=1260","species":"Perros","imageAlt":"Veterinario preparando la vacuna para un perro","fallbackImage":"./imagenes/consulta.svg"},{"id":"vacuna-felina","name":"Vacunación felina","category":"prevencion","description":"Revisión del historial y evaluación de tu gato antes de vacunar.","details":"Se revisan el carnet, la edad y los antecedentes para definir la vacuna y el intervalo adecuado. Trasládalo en un transportador.","duration":20,"durationLabel":"20 min aprox.","priceValue":null,"priceLabel":"Consultar","tag":"CUIDADO","image":"https://images.pexels.com/photos/6816869/pexels-photo-6816869.jpeg?auto=compress&dpr=1&h=750&w=1260","species":"Gatos","imageAlt":"Veterinaria aplicando una vacuna a un gato","fallbackImage":"./imagenes/gato.svg"},{"id":"desparasitacion","name":"Desparasitación","category":"prevencion","description":"Evaluación para elegir el producto y la pauta de acuerdo con cada mascota.","details":"La indicación depende de la especie, el peso, la edad y los antecedentes. No administres productos sin orientación veterinaria.","duration":15,"durationLabel":"15 min aprox.","priceValue":null,"priceLabel":"Consultar","tag":"PREVENCIÓN","image":"https://images.pexels.com/photos/6235650/pexels-photo-6235650.jpeg?cs=srgb&dl=pexels-tima-miroshnichenko-6235650.jpg&fm=jpg","species":"Perros y gatos","imageAlt":"Consulta veterinaria","fallbackImage":"./imagenes/consulta.svg"},{"id":"profilaxis-dental","name":"Evaluación y limpieza dental","category":"consulta","description":"Revisión de dientes y encías para valorar su salud oral.","details":"Se revisan sarro, encías y molestias al comer. Si corresponde una limpieza, se explican la preparación y los cuidados posteriores.","duration":45,"durationLabel":"45 min aprox.","priceValue":null,"priceLabel":"Consultar","tag":"SALUD ORAL","image":"https://images.pexels.com/photos/6235230/pexels-photo-6235230.jpeg?cs=srgb&dl=pexels-tima-miroshnichenko-6235230.jpg&fm=jpg","species":"Perros y gatos","imageAlt":"Evaluación veterinaria","fallbackImage":"./imagenes/consulta.svg"},{"id":"esterilizacion","name":"Evaluación para esterilización","category":"procedimientos","description":"Consulta previa para revisar el estado general y los requisitos antes del procedimiento.","details":"Se realiza una valoración clínica y se determinan los estudios necesarios. La fecha y el presupuesto se definen después de la evaluación.","duration":30,"durationLabel":"Evaluación · 30 min","priceValue":null,"priceLabel":"Consultar","tag":"PREQUIRÚRGICO","image":"https://images.pexels.com/photos/6235230/pexels-photo-6235230.jpeg?cs=srgb&dl=pexels-tima-miroshnichenko-6235230.jpg&fm=jpg","species":"Perros y gatos","imageAlt":"Evaluación veterinaria","fallbackImage":"./imagenes/consulta.svg"},{"id":"cirugia","name":"Valoración quirúrgica","category":"procedimientos","description":"Primera evaluación para valorar un procedimiento y sus requisitos.","details":"Se revisan el estado del paciente y los estudios previos. El veterinario explica el procedimiento, la anestesia, los riesgos y la recuperación.","duration":40,"durationLabel":"40 min aprox.","priceValue":null,"priceLabel":"Consultar","tag":"VALORACIÓN","image":"https://images.pexels.com/photos/6235230/pexels-photo-6235230.jpeg?cs=srgb&dl=pexels-tima-miroshnichenko-6235230.jpg&fm=jpg","species":"Perros y gatos","imageAlt":"Evaluación prequirúrgica","fallbackImage":"./imagenes/consulta.svg"},{"id":"curaciones","name":"Curaciones y control ambulatorio","category":"procedimientos","description":"Revisión y cuidado de lesiones o heridas con seguimiento.","details":"Se evalúa la lesión y se realiza la curación indicada. Se dejan pautas de cuidado y se define cuándo corresponde volver a control.","duration":25,"durationLabel":"25 min aprox.","priceValue":null,"priceLabel":"Consultar","tag":"SEGUIMIENTO","image":"https://images.pexels.com/photos/6235230/pexels-photo-6235230.jpeg?cs=srgb&dl=pexels-tima-miroshnichenko-6235230.jpg&fm=jpg","species":"Perros y gatos","imageAlt":"Control veterinario","fallbackImage":"./imagenes/consulta.svg"},{"id":"laboratorio","name":"Toma de muestra y laboratorio","category":"diagnostico","description":"Toma de muestras para los análisis solicitados por el veterinario.","details":"El tipo de muestra y la preparación dependen del análisis. Confirma las indicaciones antes de acudir y lleva la orden si la tienes.","duration":20,"durationLabel":"Toma · 20 min aprox.","priceValue":null,"priceLabel":"Consultar","tag":"DIAGNÓSTICO","image":"https://images.pexels.com/photos/6235230/pexels-photo-6235230.jpeg?cs=srgb&dl=pexels-tima-miroshnichenko-6235230.jpg&fm=jpg","species":"Perros y gatos","imageAlt":"Evaluación clínica","fallbackImage":"./imagenes/consulta.svg"},{"id":"imagenologia","name":"Ecografía o radiografía","category":"diagnostico","description":"Coordinación de estudios por imagen cuando están indicados.","details":"La preparación depende del estudio y del paciente. Consulta disponibilidad, horario y costo antes de coordinar la visita.","duration":30,"durationLabel":"Según estudio","priceValue":null,"priceLabel":"Consultar","tag":"IMÁGENES","image":"https://images.pexels.com/photos/6235230/pexels-photo-6235230.jpeg?cs=srgb&dl=pexels-tima-miroshnichenko-6235230.jpg&fm=jpg","species":"Perros y gatos","imageAlt":"Evaluación por imagen","fallbackImage":"./imagenes/consulta.svg"},{"id":"consulta-domicilio","name":"Consulta a domicilio","category":"consulta","description":"Atención programada en domicilio, sujeta a zona y disponibilidad.","details":"Antes de coordinar se confirma la cobertura, el traslado y el costo. Indica tu zona y el motivo de la visita.","duration":45,"durationLabel":"45 min aprox.","priceValue":null,"priceLabel":"Consultar","tag":"A DOMICILIO","image":"https://images.pexels.com/photos/6235650/pexels-photo-6235650.jpeg?cs=srgb&dl=pexels-tima-miroshnichenko-6235650.jpg&fm=jpg","species":"Perros y gatos","imageAlt":"Consulta veterinaria","fallbackImage":"./imagenes/consulta.svg"},{"id":"peluqueria","name":"Baño y peluquería higiénica","category":"bienestar","description":"Baño y cepillado de acuerdo con el tamaño y tipo de pelaje.","details":"El servicio se adapta al pelaje y a la tolerancia de la mascota. Informa si tiene heridas, irritación o sensibilidad en la piel.","duration":60,"durationLabel":"60 min aprox.","priceValue":null,"priceLabel":"Consultar","tag":"BIENESTAR","image":"./imagenes/vet-cuidados.webp","species":"Principalmente perros","imageAlt":"Cuidado de mascotas","fallbackImage":"./imagenes/consulta.svg"},{"id":"nutricion","name":"Orientación nutricional","category":"bienestar","description":"Revisión de hábitos, peso y condición corporal para orientar su alimentación.","details":"Se revisan edad, peso, actividad y condición corporal. Lleva el nombre del alimento que consume y la cantidad diaria.","duration":25,"durationLabel":"25 min aprox.","priceValue":null,"priceLabel":"Consultar","tag":"HÁBITOS","image":"https://images.pexels.com/photos/32960964/pexels-photo-32960964.jpeg?cs=srgb&dl=pexels-d-ng-nhan-324384-32960964.jpg&fm=jpg","species":"Perros y gatos","imageAlt":"Alimentación de una mascota","fallbackImage":"./imagenes/consulta.svg"}];
-let services=[],activeFilter='todos',pending=null,toastTimer=null,menuOpen=false,filteredServices=[],servicePage=1;const pageSize=()=>window.innerWidth<=620?4:6;
-const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
-const money=n=>n===null||n===undefined||n===''?'Consultar':Number.isFinite(Number(n))?`Bs ${Number(n).toLocaleString('es-BO')}`:'Consultar';
-function storageRead(){try{const v=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(v)?v:[]}catch(e){console.warn('No se pudo leer el historial local',e);return[]}}
-function storageWrite(v){try{localStorage.setItem(KEY,JSON.stringify(v));return true}catch(e){toast('El navegador no permitió guardar la solicitud. Revisa el almacenamiento.',true);return false}}
-function toast(message,error=false){const el=$('toast');el.textContent=message;el.classList.toggle('error',error);el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3400)}
-function make(tag,cls,text){const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=String(text);return el}
-function selected(){return services.find(s=>s.id===$('serviceSelect').value)||null}
-function renderServices(list,keepPage=false){filteredServices=list;const grid=$('serviceGrid');grid.replaceChildren();const pages=Math.max(1,Math.ceil(list.length/pageSize()));if(!keepPage)servicePage=1;servicePage=Math.min(Math.max(1,servicePage),pages);if(!list.length){grid.append(make('p','empty-catalog','No hay servicios que coincidan. Prueba otra categoría o búsqueda.'))}else list.slice((servicePage-1)*pageSize(),servicePage*pageSize()).forEach(s=>{const card=make('article','service-card');card.dataset.serviceCard=s.id;const art=make('div','service-art');const img=make('img');img.alt=s.imageAlt||`Fotografía de referencia de ${s.name}`;img.loading='lazy';img.decoding='async';img.width=480;img.height=280;img.addEventListener('error',()=>{if(img.dataset.fallbackApplied==='true')return;img.dataset.fallbackApplied='true';img.src=s.fallbackImage||'./imagenes/consulta.svg';img.classList.add('service-image-fallback')},{once:true});img.src=s.image;art.append(img);art.append(make('span','service-tag',s.tag));const body=make('div','service-body');const meta=make('div','service-meta');meta.append(make('span','',s.category.toUpperCase()),make('span','',s.durationLabel));body.append(meta,make('h3','',s.name),make('p','',s.description));if(s.photoUrl&&s.photoCredit){const credit=make('a','service-photo-credit',`Foto de referencia: ${s.photoCredit} · Pexels ↗`);credit.href=s.photoUrl;credit.target='_blank';credit.rel='noopener noreferrer';body.append(credit)}const detailBtn=make('button','service-detail-toggle','Qué incluye +');detailBtn.type='button';detailBtn.dataset.detailId=s.id;detailBtn.setAttribute('aria-expanded','false');const detail=make('p','service-detail',s.details||'El detalle se confirma en la evaluación.');detail.id=`service-detail-${s.id}`;detail.hidden=true;detailBtn.setAttribute('aria-controls',detail.id);body.append(detailBtn,detail);if(s.note)body.append(make('small','service-note',s.note));const bottom=make('div','service-bottom');const price=make('strong','service-price',s.priceLabel);price.append(make('small','',s.priceValue===null?'Se informa antes de atender':'Precio de referencia'));const btn=make('button','service-select','Solicitar ↗');btn.type='button';btn.dataset.bookService=s.id;bottom.append(price,btn);body.append(bottom);card.append(art,body);grid.append(card)});const pager=$('servicePager');pager.replaceChildren();if(list.length>pageSize()){const prev=make('button','pager-button','← Anterior');prev.type='button';prev.dataset.page='prev';prev.disabled=servicePage===1;const label=make('span','','Página '+servicePage+' de '+pages);const next=make('button','pager-button','Siguiente →');next.type='button';next.dataset.page='next';next.disabled=servicePage===pages;pager.append(prev,label,next);pager.hidden=false}else pager.hidden=true}
-function applyFilter(){const term=$('serviceSearch').value.trim().toLocaleLowerCase('es-BO');const list=services.filter(s=>(activeFilter==='todos'||s.category===activeFilter)&&`${s.name} ${s.description} ${s.category} ${s.species}`.toLocaleLowerCase('es-BO').includes(term));renderServices(list);$('catalogStatus').textContent=`${list.length} de ${services.length} servicios · ${list.length>pageSize()?`página ${servicePage}/${Math.ceil(list.length/pageSize())}`:'vista completa'}.`}
-window.addEventListener('resize',()=>{if(services.length)applyFilter()},{passive:true});
-function fillSelect(){const sel=$('serviceSelect');sel.replaceChildren(new Option('Selecciona un servicio',''));services.forEach(s=>sel.add(new Option(`${s.name} · ${s.priceLabel}`,s.id)))}
-function bindPhotoFallbacks(){const pairs=[['.hero-visual img','./imagenes/portada-veterinaria.svg'],['.food-banner img','./imagenes/gato.svg']];pairs.forEach(([selector,fallback])=>{const img=q(selector);if(!img)return;const apply=()=>{if(img.dataset.fallbackApplied==='true')return;img.dataset.fallbackApplied='true';img.src=fallback;img.classList.add('food-image-fallback')};img.addEventListener('error',apply,{once:true});if(img.complete&&img.naturalWidth===0)apply()})}
-function renderCatFoods(items){const grid=$('catFoodGrid');if(!grid)return;grid.replaceChildren();if(!items.length){grid.append(make('p','empty-catalog','No hay referencias de alimentos disponibles.'));return}items.forEach(item=>{const card=make('article','food-card');const art=make('div','food-art');const img=make('img');img.src=item.image;img.alt=item.imageAlt||`Fotografía de ${item.name}`;img.loading='lazy';img.decoding='async';img.width=480;img.height=360;img.addEventListener('error',()=>{if(img.dataset.fallbackApplied==='true')return;img.dataset.fallbackApplied='true';img.src='./imagenes/gato.svg';img.classList.add('food-image-fallback')},{once:true});art.append(img);const body=make('div','food-body');body.append(make('span','food-kind',item.kind),make('h3','',item.name),make('p','',item.description),make('small','food-presentation',item.presentation));const guidance=make('small','food-guidance',item.guidance||'La cantidad y el tipo de alimento deben ajustarse a cada mascota.');body.append(guidance);if(item.photoUrl&&item.photoCredit){const credit=make('a','service-photo-credit',`Foto: ${item.photoCredit} · Pexels ↗`);credit.href=item.photoUrl;credit.target='_blank';credit.rel='noopener noreferrer';body.append(credit)}card.append(art,body);grid.append(card)});$('foodCatalogStatus').textContent=`${items.length} orientaciones de alimentación disponibles. Consulta con el profesional antes de cambiar la dieta.`}
-async function loadCatFoods(){const grid=$('catFoodGrid');if(!grid)return;try{const response=await fetch('./data/productos-gatos.json');if(!response.ok)throw new Error(`productos-gatos.json respondió ${response.status}`);const items=await response.json();if(!Array.isArray(items))throw new Error('El catálogo de alimentos no es una lista válida');renderCatFoods(items.filter(item=>item&&typeof item.id==='string'&&typeof item.name==='string'&&typeof item.image==='string'))}catch(error){console.warn('No se pudo cargar el catálogo de alimentos:',error);grid.replaceChildren(make('p','empty-catalog','No se pudo cargar el catálogo de alimentos. Los servicios veterinarios siguen disponibles.'));$('foodCatalogStatus').textContent='El catálogo de alimentos no está disponible ahora.'}}
-async function loadServices(){try{const res=await fetch('./data/servicios.json');if(!res.ok)throw new Error(`Catálogo respondió ${res.status}`);const data=await res.json();if(!Array.isArray(data))throw new Error('El catálogo no es una lista válida');services=data.filter(s=>s&&typeof s.id==='string'&&typeof s.name==='string'&&typeof s.priceLabel==='string'&&typeof s.image==='string');if(!services.length)throw new Error('El catálogo llegó vacío')}catch(e){console.warn('Se usa el catálogo de respaldo:',e);services=fallbackServices;$('catalogStatus').textContent='Se está mostrando el catálogo de respaldo local.'}fillSelect();applyFilter();updateSummary()}
-function updateSummary(){const s=selected();$('summaryPet').textContent=$('petName').value.trim()||'Tu mascota';$('summarySpecies').textContent=$('petSpecies').value||'Especie por seleccionar';$('summaryService').textContent=s?s.name:'Elige una opción';$('summaryDuration').textContent=s?s.durationLabel:'—';$('summaryPrice').textContent=s?s.priceLabel:'Consultar';const d=$('bookingDate').value,t=$('bookingTime').value;$('summaryDate').textContent=d&&t?`${d.split('-').reverse().join('/')} · ${t}`:'Por definir'}
-function error(id,msg){$(id).textContent=msg}
-function validate(){const name=$('ownerName').value.trim(),phone=$('ownerPhone').value.replace(/\D/g,''),pet=$('petName').value.trim(),species=$('petSpecies').value,service=selected(),date=$('bookingDate').value,time=$('bookingTime').value,consent=$('localConsent').checked;const okName=name.length>=2&&name.length<=60,okPhone=/^\d{8}$/.test(phone),okPet=pet.length>=1&&pet.length<=40,okSpecies=['Perro','Gato','Otra especie'].includes(species),okService=!!service,dateObject=date?new Date(`${date}T12:00:00`):null,okDate=!!date&&date>=today()&&!!dateObject,okTime=!!time;
- error('ownerNameError',okName?'':'Escribe al menos 2 caracteres.');error('ownerPhoneError',okPhone?'':'Ingresa un celular boliviano de 8 dígitos.');error('petNameError',okPet?'':'Escribe el nombre de tu mascota.');error('speciesError',okSpecies?'':'Selecciona una especie.');error('serviceError',okService?'':'Selecciona un servicio.');error('dateError',okDate?'':'Selecciona una fecha de hoy o futura.');error('timeError',okTime?'':'Selecciona una hora.');error('consentError',consent?'':'Confirma los datos antes de continuar.');return okName&&okPhone&&okPet&&okSpecies&&okService&&okDate&&okTime&&consent}
-function startMs(date,time){return new Date(`${date}T${time}:00`).getTime()}
-function overlaps(a,b){if(a.date!==b.date||a.status==='cancelada'||b.status==='cancelada')return false;const as=startMs(a.date,a.time),bs=startMs(b.date,b.time);const ae=as+(Number(a.duration)||30)*60000,be=bs+(Number(b.duration)||30)*60000;return Number.isFinite(as)&&Number.isFinite(bs)&&as<be&&ae>bs}
-function showModal(data){pending=data;const box=$('modalSummary');box.replaceChildren();const rows=[['Tutor',data.ownerName],['Mascota',`${data.petName} · ${data.species}`],['Servicio',data.serviceName],['Fecha',`${data.date.split('-').reverse().join('/')} · ${data.time}`],['Precio',data.priceLabel],['Modalidad','Registro en este dispositivo']];rows.forEach(([label,value])=>{const row=make('div','modal-line');row.append(make('span','',label),make('b','',value));box.append(row)});$('bookingModal').classList.add('open');$('bookingModal').setAttribute('aria-hidden','false');$('confirmBooking').focus()}
-function closeModal(){$('bookingModal').classList.remove('open');$('bookingModal').setAttribute('aria-hidden','true');pending=null}
-function renderAppointments(){const all=storageRead(),list=$('appointmentList');list.replaceChildren();const active=all.filter(x=>x.status!=='cancelada');$('appointmentCount').textContent=`${active.length} ${active.length===1?'SOLICITUD':'SOLICITUDES'}`;if(!all.length){list.append(make('p','empty-appointments','Todavía no hay solicitudes guardadas en este dispositivo.'));return}all.slice().reverse().forEach(item=>{const row=make('article','appointment-item'),info=make('div','appointment-info');info.append(make('b','',`${item.petName} · ${item.serviceName}`),make('p','',`${item.ownerName} · ${item.species} · ${item.date.split('-').reverse().join('/')} a las ${item.time} · ${item.priceLabel}`));const actions=make('div','appointment-actions');actions.append(make('span','appointment-state',item.status==='cancelada'?'CANCELADA':'REGISTRO LOCAL'));if(item.status!=='cancelada'){const btn=make('button','cancel-button','Cancelar');btn.type='button';btn.dataset.cancelId=item.id;actions.append(btn)}row.append(info,actions);list.append(row)})}
-function confirmBooking(){if(!pending)return;const all=storageRead();if(all.some(old=>overlaps(pending,old))){closeModal();toast('Ese horario se cruza con otra solicitud guardada. Elige otra hora.',true);return}if(startMs(pending.date,pending.time)<Date.now()){closeModal();toast('La hora seleccionada ya pasó. Elige otra.',true);return}pending.id=`PAV-${Date.now()}`;pending.status='solicitada';pending.createdAt=new Date().toISOString();all.push(pending);if(storageWrite(all)){closeModal();renderAppointments();$('bookingForm').reset();$('bookingDate').min=today();$('bookingDate').value=today();updateSummary();toast('Registro guardado en este dispositivo.');(window.appShowView?window.appShowView('turnos'):location.hash='mis-turnos')}}
-function handleClick(event){const pageBtn=event.target.closest('#servicePager [data-page]');if(pageBtn){servicePage+=pageBtn.dataset.page==='next'?1:-1;renderServices(filteredServices,true);$('view-servicios').scrollTop=0;return}const detailBtn=event.target.closest('[data-detail-id]');if(detailBtn){const detail=detailBtn.nextElementSibling;const open=detailBtn.getAttribute('aria-expanded')!=='true';detailBtn.setAttribute('aria-expanded',String(open));detailBtn.textContent=open?'Ocultar detalles −':'Qué incluye +';detail.hidden=!open;return}const filter=event.target.closest('[data-filter]');if(filter){qa('.filter-tab').forEach(b=>b.classList.toggle('active',b===filter));activeFilter=filter.dataset.filter;applyFilter();return}const book=event.target.closest('[data-book-service]');if(book){$('serviceSelect').value=book.dataset.bookService;updateSummary();if(window.appShowView)window.appShowView('reservar');else $('reservar').scrollIntoView({behavior:'smooth'});$('ownerName').focus({preventScroll:true});return}const cancel=event.target.closest('[data-cancel-id]');if(cancel){const all=storageRead(),record=all.find(x=>x.id===cancel.dataset.cancelId);if(record&&confirm('¿Cancelar esta solicitud?')){record.status='cancelada';if(storageWrite(all)){renderAppointments();toast('Registro cancelado.')}}return}}
-function bindEvents(){if(window.jQuery){window.jQuery(document).off('click.pataAndina').on('click.pataAndina',handleClick)}else{document.removeEventListener('click',handleClick);document.addEventListener('click',handleClick)}$('serviceSearch').addEventListener('input',applyFilter);['petName','petSpecies','serviceSelect','bookingDate','bookingTime'].forEach(id=>$(id).addEventListener('change',updateSummary));$('petName').addEventListener('input',updateSummary);$('ownerPhone').addEventListener('input',e=>e.target.value=e.target.value.replace(/\D/g,'').slice(0,8));$('bookingForm').addEventListener('submit',e=>{e.preventDefault();if(!validate())return;const s=selected();const data={ownerName:$('ownerName').value.trim(),ownerPhone:$('ownerPhone').value,petName:$('petName').value.trim(),species:$('petSpecies').value,age:$('petAge').value.trim(),serviceId:s.id,serviceName:s.name,priceLabel:s.priceLabel,priceValue:s.priceValue,duration:Number(s.duration)||30,date:$('bookingDate').value,time:$('bookingTime').value,note:$('bookingNote').value.trim()};if(storageRead().some(old=>overlaps(data,old))){toast('Este horario se cruza con otra solicitud guardada. Elige otra hora.',true);return}if(startMs(data.date,data.time)<Date.now()){toast('La hora seleccionada ya pasó.',true);return}showModal(data)});$('confirmBooking').addEventListener('click',confirmBooking);$('cancelModal').addEventListener('click',closeModal);$('modalClose').addEventListener('click',closeModal);$('bookingModal').addEventListener('click',e=>{if(e.target===$('bookingModal'))closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeMenu()}if(e.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){e.preventDefault();$('serviceSearch').focus()}});$('themeToggle').addEventListener('click',()=>{document.body.classList.toggle('dark-theme');const dark=document.body.classList.contains('dark-theme');try{localStorage.setItem(THEME,dark?'dark':'light')}catch(_){}$('themeToggle').textContent=dark?'☀':'◐'});$('menuToggle').addEventListener('click',()=>{menuOpen=!menuOpen;$('mobileNav').classList.toggle('open',menuOpen);$('menuToggle').setAttribute('aria-expanded',String(menuOpen));$('menuToggle').setAttribute('aria-label',menuOpen?'Cerrar menú':'Abrir menú');$('menuToggle').textContent=menuOpen?'×':'☰'});qa('#mobileNav a').forEach(a=>a.addEventListener('click',closeMenu));$('bookingDate').min=today();$('bookingDate').value=today()}
-function closeMenu(){menuOpen=false;$('mobileNav').classList.remove('open');$('menuToggle').setAttribute('aria-expanded','false');$('menuToggle').setAttribute('aria-label','Abrir menú');$('menuToggle').textContent='☰'}
-function network(){const el=$('networkStatus');el.dataset.state=navigator.onLine?'online':'offline';q('b',el).textContent=navigator.onLine?'Online':'Offline'}
-function setupKeyboard(){const v=window.visualViewport;if(!v)return;const update=()=>{const active=document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);document.body.classList.toggle('keyboard-open',!!(active&&window.innerHeight-v.height>110))};v.addEventListener('resize',update);v.addEventListener('scroll',update);document.addEventListener('focusin',update);document.addEventListener('focusout',update);window.addEventListener('pagehide',()=>{v.removeEventListener('resize',update);v.removeEventListener('scroll',update);document.removeEventListener('focusin',update);document.removeEventListener('focusout',update)},{once:true})}
-async function checkOnline(){network();if(!navigator.onLine)return;try{const r=await fetch('./manifest.json',{cache:'no-store'});$('networkStatus').dataset.state=r.ok?'online':'offline';q('b',$('networkStatus')).textContent=r.ok?'Online':'Offline'}catch(_){$('networkStatus').dataset.state='offline';q('b',$('networkStatus')).textContent='Offline'}}
-async function init(){try{if(localStorage.getItem(THEME)==='dark'){document.body.classList.add('dark-theme');$('themeToggle').textContent='☀'}}catch(_){}bindEvents();bindPhotoFallbacks();renderAppointments();updateSummary();await loadServices();await loadCatFoods();checkOnline();window.addEventListener('online',checkOnline);window.addEventListener('offline',network);setupKeyboard();if('serviceWorker'in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('No se pudo registrar el Service Worker',e))}}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+function fillServiceSelect() {
+  const select = $('serviceSelect');
+  if (!select) return;
+  const oldValue = select.value;
+  select.replaceChildren(new Option('Selecciona un servicio',''));
+  services.forEach(item => select.add(new Option(item.name + ' · ' + (item.priceLabel || money(item.priceValue)),item.id)));
+  if (services.some(item => item.id === oldValue)) select.value = oldValue;
+}
+
+function renderFoods(items) {
+  const grid = $('catFoodGrid');
+  if (!grid) return;
+  grid.replaceChildren();
+  items.forEach(item => {
+    const card = make('article','food-card');
+    const art = make('div','food-art');
+    const image = make('img');
+    image.src = item.image;
+    image.alt = item.imageAlt || item.name;
+    image.loading = 'lazy';
+    image.decoding = 'async';
+    image.addEventListener('error',() => {
+      if (image.dataset.fallbackApplied === 'true') return;
+      image.dataset.fallbackApplied = 'true';
+      image.src = './imagenes/gato.svg';
+    },{once:true});
+    art.append(image);
+    const body = make('div','food-body');
+    body.append(make('span','food-kind',item.kind),make('h3','',item.name),make('p','',item.description),make('small','food-presentation',item.presentation),make('small','food-guidance',item.guidance || 'Consulta antes de cambiar la dieta.'));
+    card.append(art,body);
+    grid.append(card);
+  });
+  $('foodCatalogStatus').textContent = items.length + ' referencias de alimentación.';
+}
+
+async function loadFoods() {
+  try {
+    const response = await fetch('./data/productos-gatos.json');
+    if (!response.ok) throw new Error('No se pudo cargar el catálogo.');
+    const items = await response.json();
+    if (!Array.isArray(items)) throw new Error('Catálogo no válido.');
+    renderFoods(items);
+  } catch (_) {
+    $('catFoodGrid').replaceChildren(make('p','empty-catalog','No se pudo cargar la información de alimentación.'));
+  }
+}
+
+function updateBookingSummary() {
+  const service = selectedService();
+  $('summaryPet').textContent = $('petName').value.trim() || 'Tu mascota';
+  $('summarySpecies').textContent = $('petSpecies').value || 'Especie por seleccionar';
+  $('summaryService').textContent = service ? service.name : 'Elige una opción';
+  $('summaryDuration').textContent = service ? service.durationLabel : '—';
+  $('summaryPrice').textContent = service ? (service.priceLabel || money(service.priceValue)) : 'Consultar';
+  const date = $('bookingDate').value;
+  const time = $('bookingTime').value;
+  $('summaryDate').textContent = date && time ? date.split('-').reverse().join('/') + ' · ' + time : 'Por definir';
+}
+
+function validateBooking() {
+  const name = $('ownerName').value.trim();
+  const phone = $('ownerPhone').value.replace(/\D/g,'');
+  const email = $('ownerEmail').value.trim();
+  const pet = $('petName').value.trim();
+  const species = $('petSpecies').value;
+  const service = selectedService();
+  const date = $('bookingDate').value;
+  const time = $('bookingTime').value;
+  const consent = $('bookingConsent').checked;
+  const validName = name.length >= 2 && name.length <= 90;
+  const validPhone = /^\d{8}$/.test(phone);
+  const validEmail = !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const validPet = pet.length >= 1 && pet.length <= 60;
+  const validSpecies = ['Perro','Gato','Otra especie'].includes(species);
+  const validService = !!service;
+  const validDate = !!date && date >= today();
+  const validTime = !!time && (date !== today() || new Date(date + 'T' + time + ':00').getTime() > Date.now());
+  const validConsent = consent;
+  setStatus('ownerNameError',validName?'':'Escribe tu nombre completo.',!validName);
+  setStatus('ownerPhoneError',validPhone?'':'Ingresa un celular boliviano de 8 dígitos.',!validPhone);
+  setStatus('ownerEmailError',validEmail?'':'Revisa el correo electrónico.',!validEmail);
+  setStatus('petNameError',validPet?'':'Escribe el nombre de tu mascota.',!validPet);
+  setStatus('speciesError',validSpecies?'':'Selecciona la especie.',!validSpecies);
+  setStatus('serviceError',validService?'':'Selecciona un servicio.',!validService);
+  setStatus('dateError',validDate?'':'Selecciona hoy o una fecha futura.',!validDate);
+  setStatus('timeError',validTime?'':'Selecciona una hora disponible.',!validTime);
+  setStatus('consentError',validConsent?'':'Confirma que los datos son correctos.',!validConsent);
+  return validName && validPhone && validEmail && validPet && validSpecies && validService && validDate && validTime && validConsent;
+}
+
+function openBookingModal(data) {
+  pendingBooking = data;
+  const box = $('modalSummary');
+  box.replaceChildren();
+  [['Tutor',data.ownerName],['Mascota',data.petName + ' · ' + data.species],['Servicio',data.serviceName],['Fecha',data.date.split('-').reverse().join('/') + ' · ' + data.time],['Precio',data.priceLabel]].forEach(([label,value]) => {
+    const row = make('div','modal-line');
+    row.append(make('span','',label),make('b','',value));
+    box.append(row);
+  });
+  $('bookingModal').classList.add('open');
+  $('bookingModal').setAttribute('aria-hidden','false');
+  $('confirmBooking').disabled = false;
+  $('confirmBooking').textContent = 'Enviar solicitud';
+  $('confirmBooking').focus();
+}
+
+function closeBookingModal() {
+  $('bookingModal').classList.remove('open');
+  $('bookingModal').setAttribute('aria-hidden','true');
+  pendingBooking = null;
+}
+
+async function ensurePetForUser(data) {
+  if (!currentUser) return null;
+  const existing = currentPets.find(item => item.name.toLocaleLowerCase('es-BO') === data.petName.toLocaleLowerCase('es-BO') && item.species === data.species);
+  if (existing) return existing.id;
+  const response = await client.from('pets').insert({
+    owner_id: currentUser.id,
+    name: data.petName,
+    species: data.species,
+    age_text: data.petAge || null
+  }).select('id,name,species,age_text').single();
+  if (response.error) throw response.error;
+  currentPets.unshift(response.data);
+  renderPets();
+  return response.data.id;
+}
+
+async function confirmBooking() {
+  if (!pendingBooking || !client) return;
+  const button = $('confirmBooking');
+  button.disabled = true;
+  button.textContent = 'Enviando...';
+  try {
+    const data = pendingBooking;
+    let petId = null;
+    if (currentUser) petId = await ensurePetForUser(data);
+    const payload = {
+      owner_id: currentUser ? currentUser.id : null,
+      pet_id: petId,
+      owner_name: data.ownerName,
+      owner_phone: data.ownerPhone,
+      owner_email: data.ownerEmail || null,
+      pet_name: data.petName,
+      species: data.species,
+      pet_age: data.petAge || null,
+      service_id: data.serviceId,
+      service_name: data.serviceName,
+      price_label: data.priceLabel,
+      price_source_url: data.priceSourceUrl || null,
+      duration_minutes: data.duration,
+      requested_date: data.date,
+      requested_time: data.time,
+      notes: data.note || null,
+      status: 'requested'
+    };
+    const result = await client.from('appointment_requests').insert(payload);
+    if (result.error) throw result.error;
+    guestNotice = 'Solicitud enviada correctamente. El horario está pendiente de confirmación.';
+    closeBookingModal();
+    $('bookingForm').reset();
+    $('bookingDate').min = today();
+    $('bookingDate').value = today();
+    updateBookingSummary();
+    if (currentUser) await loadAccountData();
+    renderAppointments();
+    toast('Solicitud registrada. El centro debe confirmar el turno.');
+    if (window.appShowView) window.appShowView('turnos');
+  } catch (error) {
+    button.disabled = false;
+    button.textContent = 'Enviar solicitud';
+    toast(safeError(error),true);
+  }
+}
+
+function renderAppointments() {
+  const list = $('appointmentList');
+  const notice = $('guestBookingNotice');
+  list.replaceChildren();
+  if (!currentUser) {
+    list.append(make('p','empty-appointments','Inicia sesión para consultar tus solicitudes. Las solicitudes enviadas sin cuenta quedan registradas para que la clínica las revise.'));
+    $('appointmentCount').textContent = 'CUENTA';
+  } else {
+    loadAppointmentsInto(list,'appointmentCount');
+  }
+  if (notice) notice.textContent = guestNotice;
+}
+
+function statusName(status) {
+  const labels = {requested:'Pendiente',confirmed:'Confirmado',cancelled:'Cancelado',completed:'Atendido',rejected:'No aceptado'};
+  return labels[status] || status;
+}
+
+async function loadAppointmentsInto(target,countId) {
+  if (!currentUser) return;
+  target.replaceChildren(make('p','loading-card','Cargando solicitudes...'));
+  const result = await client.from('appointment_requests')
+    .select('id,pet_name,species,service_name,requested_date,requested_time,price_label,status,created_at')
+    .eq('owner_id',currentUser.id)
+    .order('created_at',{ascending:false});
+  target.replaceChildren();
+  if (result.error) {
+    target.append(make('p','empty-appointments',safeError(result.error)));
+    if (countId) $(countId).textContent = 'ERROR';
+    return;
+  }
+  const items = result.data || [];
+  if (countId) $(countId).textContent = items.length + (items.length===1?' SOLICITUD':' SOLICITUDES');
+  if (!items.length) {
+    target.append(make('p','empty-appointments','Todavía no tienes solicitudes registradas.'));
+    return;
+  }
+  items.forEach(item => {
+    const row = make('article','appointment-item');
+    const info = make('div','appointment-info');
+    const date = String(item.requested_date).split('-').reverse().join('/');
+    info.append(make('b','',item.pet_name + ' · ' + item.service_name),make('p','',item.species + ' · ' + date + ' a las ' + String(item.requested_time).slice(0,5) + ' · ' + item.price_label));
+    const actions = make('div','appointment-actions');
+    actions.append(make('span','appointment-state',statusName(item.status)));
+    if (item.status === 'requested') {
+      const cancel = make('button','cancel-button','Cancelar solicitud');
+      cancel.type = 'button';
+      cancel.dataset.cancelAppointment = item.id;
+      actions.append(cancel);
+    }
+    row.append(info,actions);
+    target.append(row);
+  });
+}
+
+async function cancelAppointment(id) {
+  const result = await client.from('appointment_requests').update({status:'cancelled'}).eq('id',id).eq('status','requested');
+  if (result.error) {
+    toast(safeError(result.error),true);
+    return;
+  }
+  await loadAccountData();
+  toast('Solicitud cancelada.');
+}
+
+function renderPets() {
+  const list = $('petList');
+  if (!list) return;
+  list.replaceChildren();
+  if (!currentPets.length) {
+    list.append(make('p','empty-appointments','Aún no has registrado mascotas.'));
+  } else {
+    currentPets.forEach(pet => {
+      const card = make('article','pet-row');
+      const info = make('div','pet-info');
+      info.append(make('b','',pet.name),make('p','',[pet.species,pet.age_text,pet.breed].filter(Boolean).join(' · ')));
+      const remove = make('button','cancel-button','Quitar');
+      remove.type = 'button';
+      remove.dataset.removePet = pet.id;
+      card.append(info,remove);
+      list.append(card);
+    });
+  }
+  const select = $('recordPet');
+  if (select) {
+    const old = select.value;
+    select.replaceChildren(new Option('Selecciona una mascota',''));
+    currentPets.forEach(pet => select.add(new Option(pet.name + ' · ' + pet.species,pet.id)));
+    if (currentPets.some(pet=>pet.id===old)) select.value = old;
+  }
+}
+
+async function loadAccountData() {
+  if (!currentUser) return;
+  $('authPanel').hidden = true;
+  $('accountDashboard').hidden = false;
+  $('accountGreeting').textContent = 'Hola, ' + ((currentProfile && currentProfile.full_name) || currentUser.email);
+  $('accountEmailText').textContent = currentUser.email || '';
+  const [profileResult,petsResult] = await Promise.all([
+    client.from('profiles').select('id,full_name,phone').eq('id',currentUser.id).maybeSingle(),
+    client.from('pets').select('id,name,species,breed,age_text,weight_kg,notes,created_at').eq('owner_id',currentUser.id).order('created_at',{ascending:false})
+  ]);
+  if (profileResult.error) setStatus('profileStatus',safeError(profileResult.error),true);
+  else {
+    currentProfile = profileResult.data || {id:currentUser.id,full_name:'',phone:''};
+    $('profileName').value = currentProfile.full_name || '';
+    $('profilePhone').value = currentProfile.phone || '';
+    $('accountGreeting').textContent = 'Hola, ' + (currentProfile.full_name || currentUser.email);
+  }
+  if (petsResult.error) {
+    $('petList').replaceChildren(make('p','empty-appointments',safeError(petsResult.error)));
+    currentPets = [];
+  } else currentPets = petsResult.data || [];
+  renderPets();
+  await loadAppointmentsInto($('accountAppointments'),null);
+  await loadMedicalRecords();
+  isStaff = !!(currentUser.app_metadata && currentUser.app_metadata.role === 'staff');
+  $('staffPanel').hidden = !isStaff;
+  if (isStaff) await loadStaffData();
+}
+
+async function loadMedicalRecords() {
+  const list = $('medicalRecordList');
+  list.replaceChildren(make('p','loading-card','Cargando historial...'));
+  const ids = currentPets.map(pet=>pet.id);
+  if (!ids.length) {
+    list.replaceChildren(make('p','empty-appointments','Registra una mascota para consultar su historial.'));
+    return;
+  }
+  const result = await client.from('pet_medical_records')
+    .select('id,pet_id,record_date,record_type,summary,diagnosis,treatment,prescriptions,next_visit_date')
+    .in('pet_id',ids)
+    .order('record_date',{ascending:false});
+  list.replaceChildren();
+  if (result.error) {
+    list.append(make('p','empty-appointments',safeError(result.error)));
+    return;
+  }
+  if (!(result.data || []).length) {
+    list.append(make('p','empty-appointments','La clínica aún no ha registrado atenciones para tus mascotas.'));
+    return;
+  }
+  result.data.forEach(record => {
+    const pet = currentPets.find(item=>item.id===record.pet_id);
+    const article = make('article','record-row');
+    article.append(make('span','record-date',String(record.record_date).split('-').reverse().join('/')),make('h4','',(pet?pet.name:'Mascota')+' · '+record.record_type),make('p','',record.summary));
+    if (record.diagnosis) article.append(make('p','', 'Diagnóstico: '+record.diagnosis));
+    if (record.treatment) article.append(make('p','', 'Tratamiento: '+record.treatment));
+    if (record.prescriptions) article.append(make('p','', 'Indicaciones: '+record.prescriptions));
+    if (record.next_visit_date) article.append(make('small','', 'Próximo control: '+String(record.next_visit_date).split('-').reverse().join('/')));
+    list.append(article);
+  });
+}
+
+async function loadStaffData() {
+  const panel = $('staffAppointments');
+  panel.replaceChildren(make('p','loading-card','Cargando agenda...'));
+  const result = await client.from('appointment_requests')
+    .select('id,owner_name,owner_phone,owner_email,pet_name,species,service_name,requested_date,requested_time,notes,status')
+    .order('requested_date',{ascending:true})
+    .order('requested_time',{ascending:true});
+  panel.replaceChildren();
+  if (result.error) {
+    panel.append(make('p','empty-appointments',safeError(result.error)));
+    return;
+  }
+  const records = result.data || [];
+  if (!records.length) panel.append(make('p','empty-appointments','No hay solicitudes registradas.'));
+  records.forEach(item => {
+    const card = make('article','staff-appointment');
+    const info = make('div','appointment-info');
+    const date = String(item.requested_date).split('-').reverse().join('/');
+    info.append(make('b','',item.pet_name+' · '+item.service_name),make('p','',item.owner_name+' · '+item.owner_phone+' · '+item.species+' · '+date+' '+String(item.requested_time).slice(0,5)));
+    if (item.owner_email) info.append(make('p','',item.owner_email));
+    if (item.notes) info.append(make('p','',item.notes));
+    const actions = make('div','staff-actions');
+    actions.append(make('span','appointment-state',statusName(item.status)));
+    if (item.status === 'requested') {
+      [['confirmed','Confirmar'],['rejected','Rechazar']].forEach(([status,label])=>{
+        const button = make('button','button button-outline',label);
+        button.type = 'button';
+        button.dataset.staffStatus = status;
+        button.dataset.appointmentId = item.id;
+        actions.append(button);
+      });
+    }
+    card.append(info,actions);
+    panel.append(card);
+  });
+}
+
+async function saveProfile(event) {
+  event.preventDefault();
+  const fullName = $('profileName').value.trim();
+  const phone = $('profilePhone').value.replace(/\D/g,'');
+  if (fullName.length < 2) return setStatus('profileStatus','Escribe tu nombre completo.',true);
+  if (phone && !/^\d{8}$/.test(phone)) return setStatus('profileStatus','El celular debe tener 8 dígitos.',true);
+  const result = await client.from('profiles').upsert({id:currentUser.id,full_name:fullName,phone:phone||null},{onConflict:'id'});
+  if (result.error) return setStatus('profileStatus',safeError(result.error),true);
+  currentProfile = {id:currentUser.id,full_name:fullName,phone:phone||null};
+  $('accountGreeting').textContent = 'Hola, ' + fullName;
+  setStatus('profileStatus','Datos guardados.');
+}
+
+async function savePet(event) {
+  event.preventDefault();
+  const name = $('newPetName').value.trim();
+  const species = $('newPetSpecies').value;
+  if (!name || !species) return setStatus('petStatus','Completa el nombre y la especie.',true);
+  const result = await client.from('pets').insert({
+    owner_id:currentUser.id,
+    name,
+    species,
+    age_text:$('newPetAge').value.trim()||null,
+    breed:$('newPetBreed').value.trim()||null
+  }).select('id,name,species,age_text,breed').single();
+  if (result.error) return setStatus('petStatus',safeError(result.error),true);
+  currentPets.unshift(result.data);
+  $('petForm').reset();
+  renderPets();
+  setStatus('petStatus','Mascota registrada.');
+}
+
+async function removePet(id) {
+  if (!confirm('¿Quitar esta mascota de tu cuenta?')) return;
+  const result = await client.from('pets').delete().eq('id',id);
+  if (result.error) return toast(safeError(result.error),true);
+  currentPets = currentPets.filter(pet=>pet.id!==id);
+  renderPets();
+  await loadMedicalRecords();
+  toast('Mascota quitada de tu cuenta.');
+}
+
+function setAuthMode(mode) {
+  authMode = mode;
+  const signup = mode === 'signup';
+  $('loginMode').classList.toggle('active',!signup);
+  $('signupMode').classList.toggle('active',signup);
+  $('accountNameWrap').hidden = !signup;
+  $('accountPhoneWrap').hidden = !signup;
+  $('accountPassword').autocomplete = signup ? 'new-password' : 'current-password';
+  $('authSubmit').textContent = signup ? 'Crear cuenta' : 'Iniciar sesión';
+  $('forgotPassword').hidden = signup;
+  setStatus('authStatus','');
+}
+
+async function handleAuth(event) {
+  event.preventDefault();
+  if (!client) return setStatus('authStatus','No se pudo cargar el servicio de cuentas. Revisa tu conexión.',true);
+  const email = $('accountEmail').value.trim().toLowerCase();
+  const password = $('accountPassword').value;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setStatus('authStatus','Ingresa un correo válido.',true);
+  if (password.length < 8) return setStatus('authStatus','La contraseña debe tener al menos 8 caracteres.',true);
+  $('authSubmit').disabled = true;
+  setStatus('authStatus',authMode==='signup'?'Creando cuenta...':'Ingresando...');
+  try {
+    if (authMode === 'signup') {
+      const fullName = $('accountName').value.trim();
+      const phone = $('accountPhone').value.replace(/\D/g,'');
+      if (fullName.length < 2) throw new Error('Escribe tu nombre completo.');
+      if (phone && !/^\d{8}$/.test(phone)) throw new Error('El celular debe tener 8 dígitos.');
+      const result = await client.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {full_name:fullName},
+          emailRedirectTo:window.location.origin + window.location.pathname
+        }
+      });
+      if (result.error) throw result.error;
+      if (result.data.session) {
+        currentUser = result.data.user;
+        currentProfile = {id:currentUser.id,full_name:fullName,phone:phone||null};
+        const saved = await client.from('profiles').upsert({id:currentUser.id,full_name:fullName,phone:phone||null},{onConflict:'id'});
+        if (saved.error) throw saved.error;
+        await showSignedIn();
+        toast('Cuenta creada.');
+      } else {
+        setStatus('authStatus','Te enviamos un correo para confirmar la cuenta. Abre el enlace y vuelve a iniciar sesión.');
+      }
+    } else {
+      const result = await client.auth.signInWithPassword({email,password});
+      if (result.error) throw result.error;
+      currentUser = result.data.user;
+      await showSignedIn();
+      toast('Sesión iniciada.');
+    }
+  } catch (error) {
+    setStatus('authStatus',safeError(error),true);
+  } finally {
+    $('authSubmit').disabled = false;
+  }
+}
+
+async function showSignedIn() {
+  const result = await client.auth.getUser();
+  if (result.error) throw result.error;
+  currentUser = result.data.user;
+  $('authPanel').hidden = true;
+  $('accountDashboard').hidden = false;
+  await loadAccountData();
+  renderAppointments();
+}
+
+async function handleSignOut() {
+  const result = await client.auth.signOut();
+  if (result.error) return toast(safeError(result.error),true);
+  currentUser = null;
+  currentProfile = null;
+  currentPets = [];
+  isStaff = false;
+  $('accountDashboard').hidden = true;
+  $('authPanel').hidden = false;
+  setAuthMode('login');
+  renderAppointments();
+  toast('Sesión cerrada.');
+}
+
+async function resetPassword() {
+  const email = $('accountEmail').value.trim().toLowerCase();
+  if (!email) return setStatus('authStatus','Escribe tu correo para recuperar la contraseña.',true);
+  const result = await client.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+window.location.pathname});
+  if (result.error) return setStatus('authStatus',safeError(result.error),true);
+  setStatus('authStatus','Si el correo está registrado, recibirás un enlace para restablecer tu contraseña.');
+}
+
+async function staffUpdateStatus(id,status) {
+  const result = await client.from('appointment_requests').update({status}).eq('id',id);
+  if (result.error) return toast(safeError(result.error),true);
+  await loadStaffData();
+  toast('Estado actualizado.');
+}
+
+async function saveMedicalRecord(event) {
+  event.preventDefault();
+  if (!isStaff) return;
+  const petId = $('recordPet').value;
+  const summary = $('recordSummary').value.trim();
+  if (!petId || summary.length < 2) return setStatus('recordStatus','Selecciona una mascota y escribe el resumen.',true);
+  const result = await client.from('pet_medical_records').insert({
+    pet_id:petId,
+    recorded_by:currentUser.id,
+    record_type:$('recordType').value.trim()||'Consulta',
+    summary,
+    diagnosis:$('recordDiagnosis').value.trim()||null,
+    treatment:$('recordTreatment').value.trim()||null,
+    prescriptions:$('recordPrescriptions').value.trim()||null,
+    next_visit_date:$('recordNextVisit').value||null
+  });
+  if (result.error) return setStatus('recordStatus',safeError(result.error),true);
+  $('medicalRecordForm').reset();
+  $('recordType').value = 'Consulta';
+  await loadMedicalRecords();
+  setStatus('recordStatus','Atención registrada en el historial.');
+}
+
+function renderAppointmentCountGuest() {
+  if (!currentUser) $('appointmentCount').textContent = 'INICIA SESIÓN';
+}
+
+function bindEvents() {
+  document.addEventListener('click',event=>{
+    const link = event.target.closest('a[href^="#"]');
+    if (link && link.closest('.mobile-nav')) closeMenu();
+    const detail = event.target.closest('[data-detail-id]');
+    if (detail) {
+      const panel = detail.nextElementSibling;
+      const open = detail.getAttribute('aria-expanded') !== 'true';
+      detail.setAttribute('aria-expanded',String(open));
+      detail.textContent = open ? 'Ocultar detalles −' : 'Qué incluye +';
+      panel.hidden = !open;
+      return;
+    }
+    const book = event.target.closest('[data-book-service]');
+    if (book) {
+      $('serviceSelect').value = book.dataset.bookService;
+      updateBookingSummary();
+      if (window.appShowView) window.appShowView('reservar');
+      $('ownerName').focus({preventScroll:true});
+      return;
+    }
+    const cancel = event.target.closest('[data-cancel-appointment]');
+    if (cancel) {
+      cancelAppointment(cancel.dataset.cancelAppointment);
+      return;
+    }
+    const remove = event.target.closest('[data-remove-pet]');
+    if (remove) {
+      removePet(remove.dataset.removePet);
+      return;
+    }
+    const staff = event.target.closest('[data-staff-status]');
+    if (staff) {
+      staffUpdateStatus(staff.dataset.appointmentId,staff.dataset.staffStatus);
+      return;
+    }
+  });
+
+  $('serviceSearch').addEventListener('input',()=>{
+    const term = $('serviceSearch').value.trim().toLocaleLowerCase('es-BO');
+    const filtered = services.filter(item=>(item.name+' '+item.description+' '+item.category+' '+item.species).toLocaleLowerCase('es-BO').includes(term));
+    renderServices(filtered);
+  });
+  qa('[data-filter]').forEach(button=>button.addEventListener('click',()=>{
+    qa('[data-filter]').forEach(item=>item.classList.toggle('active',item===button));
+    const term = $('serviceSearch').value.trim().toLocaleLowerCase('es-BO');
+    const filtered = services.filter(item=>(button.dataset.filter==='todos'||item.category===button.dataset.filter)&&(item.name+' '+item.description+' '+item.category+' '+item.species).toLocaleLowerCase('es-BO').includes(term));
+    renderServices(filtered);
+  }));
+  ['petName','petSpecies','serviceSelect','bookingDate','bookingTime'].forEach(id=>$(id).addEventListener('change',updateBookingSummary));
+  $('petName').addEventListener('input',updateBookingSummary);
+  $('ownerPhone').addEventListener('input',event=>event.target.value=event.target.value.replace(/\D/g,'').slice(0,8));
+  $('bookingDate').min = today();
+  $('bookingDate').value = today();
+  $('bookingForm').addEventListener('submit',event=>{
+    event.preventDefault();
+    if (!validateBooking()) return;
+    const service = selectedService();
+    openBookingModal({
+      ownerName:$('ownerName').value.trim(),
+      ownerPhone:$('ownerPhone').value.replace(/\D/g,''),
+      ownerEmail:$('ownerEmail').value.trim(),
+      petName:$('petName').value.trim(),
+      species:$('petSpecies').value,
+      petAge:$('petAge').value.trim(),
+      serviceId:service.id,
+      serviceName:service.name,
+      priceLabel:service.priceLabel || money(service.priceValue),
+      priceValue:service.priceValue,
+      priceSourceUrl:null,
+      duration:service.duration,
+      date:$('bookingDate').value,
+      time:$('bookingTime').value,
+      note:$('bookingNote').value.trim()
+    });
+  });
+  $('confirmBooking').addEventListener('click',confirmBooking);
+  $('cancelModal').addEventListener('click',closeBookingModal);
+  $('modalClose').addEventListener('click',closeBookingModal);
+  $('bookingModal').addEventListener('click',event=>{if(event.target===$('bookingModal'))closeBookingModal()});
+  $('themeToggle').addEventListener('click',()=>{
+    document.body.classList.toggle('dark-theme');
+    const dark = document.body.classList.contains('dark-theme');
+    try { localStorage.setItem(THEME_KEY,dark?'dark':'light'); } catch (_) {}
+    $('themeToggle').textContent = dark?'☀':'◐';
+  });
+  $('menuToggle').addEventListener('click',()=>{
+    menuOpen = !menuOpen;
+    $('mobileNav').classList.toggle('open',menuOpen);
+    $('menuToggle').setAttribute('aria-expanded',String(menuOpen));
+    $('menuToggle').setAttribute('aria-label',menuOpen?'Cerrar menú':'Abrir menú');
+    $('menuToggle').textContent = menuOpen?'×':'☰';
+  });
+  $('loginMode').addEventListener('click',()=>setAuthMode('login'));
+  $('signupMode').addEventListener('click',()=>setAuthMode('signup'));
+  $('authForm').addEventListener('submit',handleAuth);
+  $('forgotPassword').addEventListener('click',resetPassword);
+  $('signOutButton').addEventListener('click',handleSignOut);
+  $('profileForm').addEventListener('submit',saveProfile);
+  $('profilePhone').addEventListener('input',event=>event.target.value=event.target.value.replace(/\D/g,'').slice(0,8));
+  $('accountPhone').addEventListener('input',event=>event.target.value=event.target.value.replace(/\D/g,'').slice(0,8));
+  $('petForm').addEventListener('submit',savePet);
+  $('medicalRecordForm').addEventListener('submit',saveMedicalRecord);
+  document.addEventListener('keydown',event=>{
+    if (event.key==='Escape') {
+      closeBookingModal();
+      closeMenu();
+    }
+    if (event.key==='/' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) {
+      event.preventDefault();
+      $('serviceSearch').focus();
+    }
+  });
+}
+
+function closeMenu() {
+  menuOpen = false;
+  $('mobileNav').classList.remove('open');
+  $('menuToggle').setAttribute('aria-expanded','false');
+  $('menuToggle').setAttribute('aria-label','Abrir menú');
+  $('menuToggle').textContent = '☰';
+}
+
+function updateNetwork() {
+  const status = $('networkStatus');
+  if (!navigator.onLine) {
+    status.dataset.state = 'offline';
+    status.querySelector('b').textContent = 'Offline';
+    return;
+  }
+  status.dataset.state = client ? 'online' : 'offline';
+  status.querySelector('b').textContent = client ? 'Online' : 'Sin conexión';
+}
+
+async function checkConnection() {
+  updateNetwork();
+  if (!navigator.onLine || !client) return;
+  const result = await client.from('services_catalog').select('id',{head:true,count:'exact'});
+  const online = !result.error;
+  $('networkStatus').dataset.state = online?'online':'offline';
+  $('networkStatus').querySelector('b').textContent = online?'Online':'Sin conexión';
+}
+
+async function init() {
+  try {
+    if (localStorage.getItem(THEME_KEY)==='dark') {
+      document.body.classList.add('dark-theme');
+      $('themeToggle').textContent = '☀';
+    }
+  } catch (_) {}
+  bindEvents();
+  bindPhotoFallbacks();
+  setAuthMode('login');
+  if (!initSupabase()) {
+    setStatus('authStatus','No se pudo cargar Supabase. Revisa tu conexión y vuelve a cargar la página.',true);
+    $('networkStatus').dataset.state = 'offline';
+    $('networkStatus').querySelector('b').textContent = 'Sin conexión';
+  } else {
+    const session = await client.auth.getSession();
+    if (session.error) setStatus('authStatus',safeError(session.error),true);
+    if (session.data && session.data.session) {
+      const userResult = await client.auth.getUser();
+      if (!userResult.error && userResult.data.user) {
+        currentUser = userResult.data.user;
+        await showSignedIn();
+      }
+    }
+    client.auth.onAuthStateChange((event,sessionData)=>{
+      if (event==='SIGNED_OUT') {
+        currentUser = null;
+        currentProfile = null;
+        currentPets = [];
+        $('accountDashboard').hidden = true;
+        $('authPanel').hidden = false;
+        renderAppointments();
+      } else if (sessionData && sessionData.user && event==='SIGNED_IN') {
+        currentUser = sessionData.user;
+        setTimeout(()=>showSignedIn().catch(error=>toast(safeError(error),true)),0);
+      }
+    });
+  }
+  renderAppointments();
+  await loadServices();
+  await loadFoods();
+  checkConnection();
+  window.addEventListener('online',checkConnection);
+  window.addEventListener('offline',updateNetwork);
+  if ('serviceWorker' in navigator && location.protocol==='https:') {
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  }
+}
+
+if (document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true});
+else init();
 })();
