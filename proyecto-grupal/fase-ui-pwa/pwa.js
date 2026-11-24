@@ -477,6 +477,9 @@ async function loadAccountData() {
     $('profileName').value = currentProfile.full_name || '';
     $('profilePhone').value = currentProfile.phone || '';
     $('accountGreeting').textContent = 'Hola, ' + (currentProfile.full_name || currentUser.email);
+    if (!$('ownerName').value.trim()) $('ownerName').value = currentProfile.full_name || '';
+    if (!$('ownerPhone').value.trim()) $('ownerPhone').value = currentProfile.phone || '';
+    if (!$('ownerEmail').value.trim()) $('ownerEmail').value = currentUser.email || '';
   }
   if (petsResult.error) {
     $('petList').replaceChildren(make('p','empty-appointments',safeError(petsResult.error)));
