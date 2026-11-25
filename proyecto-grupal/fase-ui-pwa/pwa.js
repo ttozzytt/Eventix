@@ -1019,13 +1019,6 @@ function bindEvents() {
   document.addEventListener('click',event=>{
     const link = event.target.closest('a[href^="#"]');
     if (link && link.closest('.mobile-nav')) closeMenu();
-    const simulation = event.target.closest('#btnSimularVista');
-    if (simulation) {
-      const compact = $('serviceGrid').classList.toggle('sim-movil');
-      simulation.setAttribute('aria-pressed',String(compact));
-      simulation.textContent = compact ? 'Volver a vista adaptable' : 'Simular vista móvil';
-      return;
-    }
     const page = event.target.closest('#servicePager [data-page]');
     if (page) {
       servicePage += page.dataset.page === 'next' ? 1 : -1;
