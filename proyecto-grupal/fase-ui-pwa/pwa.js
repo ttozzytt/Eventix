@@ -86,6 +86,7 @@ let toastTimer = null;
 let menuOpen = false;
 let guestNotice = '';
 let isStaff = false;
+let recoveringPassword = false;
 
 const today = () => {
   const date = new Date();
@@ -773,6 +774,12 @@ async function loadStaffData() {
         button.dataset.appointmentId = item.id;
         actions.append(button);
       });
+    } else if (item.status === 'confirmed') {
+      const completed = make('button','button button-outline','Marcar atendida');
+      completed.type = 'button';
+      completed.dataset.staffStatus = 'completed';
+      completed.dataset.appointmentId = item.id;
+      actions.append(completed);
     }
     card.append(info,actions);
     panel.append(card);
@@ -847,13 +854,16 @@ async function updatePetDetails(event) {
 function setAuthMode(mode) {
   authMode = mode;
   const signup = mode === 'signup';
-  $('loginMode').classList.toggle('active',!signup);
+  const recovery = mode === 'recovery';
+  $('authSwitch').hidden = recovery;
+  $('loginMode').classList.toggle('active',mode === 'login');
   $('signupMode').classList.toggle('active',signup);
   $('accountNameWrap').hidden = !signup;
   $('accountPhoneWrap').hidden = !signup;
-  $('accountPassword').autocomplete = signup ? 'new-password' : 'current-password';
-  $('authSubmit').textContent = signup ? 'Crear cuenta' : 'Iniciar sesión';
-  $('forgotPassword').hidden = signup;
+  $('accountPassword').autocomplete = signup || recovery ? 'new-password' : 'current-password';
+  $('accountPassword').placeholder = recovery ? 'Escribe tu nueva contraseña' : 'Mínimo 8 caracteres';
+  $('authSubmit').textContent = recovery ? 'Guardar nueva contraseña' : signup ? 'Crear cuenta' : 'Iniciar sesión';
+  $('forgotPassword').hidden = signup || recovery;
   setStatus('authStatus','');
 }
 
@@ -867,7 +877,15 @@ async function handleAuth(event) {
   $('authSubmit').disabled = true;
   setStatus('authStatus',authMode==='signup'?'Creando cuenta...':'Ingresando...');
   try {
-    if (authMode === 'signup') {
+    if (authMode === 'recovery') {
+      const result = await client.auth.updateUser({password});
+      if (result.error) throw result.error;
+      await client.auth.signOut();
+      setAuthMode('login');
+      $('accountPassword').value = '';
+      setStatus('authStatus','Contraseña actualizada. Ya puedes iniciar sesión con tu nueva contraseña.');
+      toast('Contraseña actualizada.');
+    } else if (authMode === 'signup') {
       const fullName = $('accountName').value.trim();
       const phone = $('accountPhone').value.replace(/\D/g,'');
       if (fullName.length < 2) throw new Error('Escribe tu nombre completo.');
@@ -962,7 +980,7 @@ async function activateClinicStaff(event) {
 async function staffUpdateStatus(id,status) {
   const result = await client.from('appointment_requests').update({status}).eq('id',id);
   if (result.error) return toast(safeError(result.error),true);
-  await loadStaffData();
+  await Promise.all([loadStaffData(),loadClinicActivity()]);
   toast('Estado actualizado.');
 }
 
@@ -986,6 +1004,7 @@ async function saveMedicalRecord(event) {
   $('medicalRecordForm').reset();
   $('recordType').value = 'Consulta';
   await loadMedicalRecords();
+  await loadClinicActivity();
   setStatus('recordStatus','Atención registrada en el historial.');
 }
 
@@ -1159,28 +1178,47 @@ async function init() {
     $('networkStatus').dataset.state = 'offline';
     $('networkStatus').querySelector('b').textContent = 'Sin conexión';
   } else {
+    client.auth.onAuthStateChange((event,sessionData)=>{
+      if (event==='SIGNED_OUT') {
+        recoveringPassword = false;
+        currentUser = null;
+        currentProfile = null;
+        currentPets = [];
+        $('accountDashboard').hidden = true;
+        $('authPanel').hidden = false;
+        setAuthMode('login');
+        renderAppointments();
+      } else if (event==='PASSWORD_RECOVERY' && sessionData && sessionData.user) {
+        recoveringPassword = true;
+        currentUser = sessionData.user;
+        $('accountDashboard').hidden = true;
+        $('authPanel').hidden = false;
+        setAuthMode('recovery');
+        setStatus('authStatus','Escribe tu nueva contraseña para completar la recuperación.');
+      } else if (sessionData && sessionData.user && event==='SIGNED_IN') {
+        recoveringPassword = false;
+        currentUser = sessionData.user;
+        setTimeout(()=>showSignedIn().catch(error=>toast(safeError(error),true)),0);
+      }
+    });
     const session = await client.auth.getSession();
     if (session.error) setStatus('authStatus',safeError(session.error),true);
     if (session.data && session.data.session) {
       const userResult = await client.auth.getUser();
       if (!userResult.error && userResult.data.user) {
         currentUser = userResult.data.user;
-        await showSignedIn();
+        const recoveryLink = new URLSearchParams(location.hash.replace(/^#/,'')).get('type') === 'recovery';
+        if (recoveringPassword || recoveryLink) {
+          recoveringPassword = true;
+          $('accountDashboard').hidden = true;
+          $('authPanel').hidden = false;
+          setAuthMode('recovery');
+          setStatus('authStatus','Escribe tu nueva contraseña para completar la recuperación.');
+        } else {
+          await showSignedIn();
+        }
       }
     }
-    client.auth.onAuthStateChange((event,sessionData)=>{
-      if (event==='SIGNED_OUT') {
-        currentUser = null;
-        currentProfile = null;
-        currentPets = [];
-        $('accountDashboard').hidden = true;
-        $('authPanel').hidden = false;
-        renderAppointments();
-      } else if (sessionData && sessionData.user && event==='SIGNED_IN') {
-        currentUser = sessionData.user;
-        setTimeout(()=>showSignedIn().catch(error=>toast(safeError(error),true)),0);
-      }
-    });
   }
   renderAppointments();
   await loadServices();
