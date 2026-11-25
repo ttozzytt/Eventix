@@ -109,6 +109,23 @@ const toast = (message, error=false) => {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => node.classList.remove('show'), 4200);
 };
+function syncStaffNavigation() {
+  qa('[data-staff-link]').forEach(link => { link.hidden = !isStaff; });
+}
+
+function guardStaffRoute() {
+  if (location.hash !== '#admin' || isStaff) return;
+  if (window.appShowView) window.appShowView('cuenta');
+  setStatus('authStatus',
+    currentUser ? 'Esta pantalla es exclusiva del personal autorizado.' : 'Inicia sesión con una cuenta autorizada para acceder al panel.',
+    true
+  );
+}
+
+document.addEventListener('appviewchange', event => {
+  if (event.detail && event.detail.name === 'admin' && !isStaff) guardStaffRoute();
+});
+
 const safeError = error => {
   const message = String(error && (error.message || error) || '');
   if (/duplicate key|unique constraint/i.test(message)) return 'Ya existe un registro con esos datos.';
@@ -570,6 +587,7 @@ async function loadAccountData() {
   $('accountGreeting').textContent = 'Hola, ' + ((currentProfile && currentProfile.full_name) || currentUser.email);
   $('accountEmailText').textContent = currentUser.email || '';
   isStaff = !!(currentUser.app_metadata && currentUser.app_metadata.role === 'staff');
+  syncStaffNavigation();
   let petsQuery = client.from('pets').select('id,owner_id,name,species,breed,age_text,weight_kg,notes,created_at').order('created_at',{ascending:false});
   if (!isStaff) petsQuery = petsQuery.eq('owner_id',currentUser.id);
   const [profileResult,petsResult] = await Promise.all([
@@ -942,6 +960,8 @@ async function handleSignOut() {
   currentProfile = null;
   currentPets = [];
   isStaff = false;
+  syncStaffNavigation();
+  guardStaffRoute();
   $('accountDashboard').hidden = true;
   $('authPanel').hidden = false;
   setAuthMode('login');
@@ -972,6 +992,7 @@ async function activateClinicStaff(event) {
     $('staffActivationCode').value = '';
     await loadAccountData();
     toast('Acceso de personal activado.');
+    if (window.appShowView) window.appShowView('admin');
   } catch (error) {
     setStatus('staffActivationStatus',safeError(error),true);
   } finally {
@@ -1186,6 +1207,9 @@ async function init() {
         currentUser = null;
         currentProfile = null;
         currentPets = [];
+        isStaff = false;
+        syncStaffNavigation();
+        guardStaffRoute();
         $('accountDashboard').hidden = true;
         $('authPanel').hidden = false;
         setAuthMode('login');
@@ -1228,6 +1252,7 @@ async function init() {
   checkConnection();
   window.addEventListener('online',checkConnection);
   window.addEventListener('offline',updateNetwork);
+  guardStaffRoute();
   if ('serviceWorker' in navigator && location.protocol==='https:') {
     navigator.serviceWorker.register('./sw.js').catch(()=>{});
   }
