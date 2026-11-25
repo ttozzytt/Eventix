@@ -6,15 +6,64 @@
 <meta content="#315d4d" name="theme-color"/><meta content="Atención veterinaria para perros y gatos en La Paz. Servicios, cuidados y solicitudes de turno." name="description"/>
 <meta content="yes" name="mobile-web-app-capable"/><meta content="yes" name="apple-mobile-web-app-capable"/>
 <title>Pata Andina · Centro Veterinario</title><link href="./manifest.json" rel="manifest"/><link href="./icons/pata-andina-mark.svg" rel="icon" type="image/svg+xml"/><link href="./icons/icon-192.png" rel="apple-touch-icon"/>
-<link href="./pwa.css?v=design2-20261125-v1" rel="stylesheet"/><script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2"></script><script defer src="./pwa.js?v=design2-20261125-v1"></script>
+<link href="./pwa.css?v=design2-20261125-v2" rel="stylesheet"/><script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2"></script><script defer src="./pwa.js?v=design2-20261125-v2"></script>
 </head><body>
 <header class="site-header"><a aria-label="Pata Andina Vet, inicio" class="brand" href="#inicio"><img alt="" aria-hidden="true" class="brand-logo" height="42" src="./icons/pata-andina-mark.svg" width="42"/><span class="brand-name"><b>PATA ANDINA</b><small>CENTRO VETERINARIO</small></span></a>
 <nav aria-label="Navegación principal" class="main-nav"><a data-layer-link="true" href="#inicio">Inicio</a><a data-layer-link="true" href="#servicios">Servicios</a><a data-layer-link="true" href="#alimentacion-gatos">Alimentación felina</a><a data-layer-link="true" href="#cuidados">Cuidados</a><a data-layer-link="true" href="#reservar">Reservar</a><a data-layer-link="true" href="#mis-turnos">Mis turnos</a><a data-layer-link="true" href="#cuenta">Mi cuenta</a><a data-layer-link="true" href="#visita">Tu visita</a><a data-layer-link="true" data-staff-link hidden href="#admin">Administración</a></nav>
 <div class="header-actions"><span class="network-status" data-state="checking" id="networkStatus" role="status" aria-live="polite"><i></i><b>Comprobando</b></span><button aria-label="Cambiar tema" aria-pressed="false" class="icon-button" id="themeToggle" title="Cambiar tema" type="button">◐</button><button aria-expanded="false" aria-label="Abrir menú" aria-controls="mobileNav" aria-expanded="false" class="menu-toggle" id="menuToggle" type="button">☰</button></div></header>
 <nav aria-label="Navegación móvil" class="mobile-nav" id="mobileNav"><a data-layer-link="true" href="#inicio">Inicio</a><a data-layer-link="true" href="#servicios">Servicios</a><a data-layer-link="true" href="#alimentacion-gatos">Alimentación felina</a><a data-layer-link="true" href="#cuidados">Cuidados</a><a data-layer-link="true" href="#reservar">Reservar</a><a data-layer-link="true" href="#mis-turnos">Mis turnos</a><a data-layer-link="true" href="#cuenta">Mi cuenta</a><a data-layer-link="true" href="#visita">Tu visita</a><a data-layer-link="true" data-staff-link hidden href="#admin">Administración</a></nav>
 <main class="app-views">
-<section aria-hidden="false" class="app-view active" data-view-name="inicio" id="view-inicio"><section class="hero section-shell" id="inicio"><div class="hero-copy"><p class="eyebrow"><span></span> CENTRO VETERINARIO · LA PAZ</p><h1>Su bienestar.<br/><em>Nuestra prioridad.</em></h1><p class="hero-lead">Consultas, prevención y seguimiento para perros y gatos. Revisa los servicios y solicita una evaluación.</p><div class="hero-actions"><a class="button button-primary" href="#reservar">Solicitar una cita <span>↗</span></a><a class="quiet-link" href="#servicios">Ver servicios <span>↓</span></a></div><div class="hero-metrics"><div><b>16</b><span>SERVICIOS</span></div><div><b>2</b><span>PERROS Y GATOS</span></div><div><b>LP</b><span>LA PAZ · BOLIVIA</span></div></div></div>
-<div class="hero-visual"><img alt="Veterinario y asistente examinando a un perro en consulta" fetchpriority="high" height="560" loading="eager" src="https://images.pexels.com/photos/7469212/pexels-photo-7469212.jpeg?auto=compress&amp;dpr=1&amp;h=750&amp;w=1260" width="840"/></div></section><section class="trust-strip"><div class="section-shell trust-inner"><span>Consulta veterinaria</span><span>Prevención y seguimiento</span><span>Atención para perros y gatos</span></div></section></section><section aria-hidden="true" class="app-view" data-view-name="servicios" id="view-servicios"><section class="services-section section-shell" id="servicios"><div class="section-heading"><div><p class="eyebrow"><span></span> CATÁLOGO DE ATENCIÓN</p><h2>Servicios para <em>cada etapa.</em></h2></div><p class="section-lead">Revisa qué incluye cada atención y consulta la disponibilidad al solicitar tu turno.</p></div>
+<section aria-hidden="false" class="app-view active home-view" data-view-name="inicio" id="view-inicio">
+<section aria-labelledby="homeTitle" class="home-board section-shell" id="inicio">
+  <div class="home-board__copy">
+    <p class="home-eyebrow"><span></span> VETERINARIA · LA PAZ</p>
+    <h1 id="homeTitle">Cuidado para <em>cada historia.</em></h1>
+    <p class="home-lead">Consultas, prevención y seguimiento para perros y gatos.</p>
+    <div class="home-actions">
+      <a class="button button-primary home-action-primary" href="#reservar">Reservar turno <span aria-hidden="true">↗</span></a>
+      <a class="home-action-secondary" href="#servicios">Explorar servicios <span aria-hidden="true">→</span></a>
+    </div>
+    <div class="home-proof" aria-label="Información de Pata Andina">
+      <span><b>16</b> servicios</span>
+      <span class="home-proof__divider" aria-hidden="true"></span>
+      <span>Perros y gatos</span>
+      <span class="home-proof__divider" aria-hidden="true"></span>
+      <span>La Paz, Bolivia</span>
+    </div>
+  </div>
+  <figure class="home-board__visual">
+    <img alt="Equipo veterinario examinando a un perro durante una consulta" decoding="async" fetchpriority="high" height="700" loading="eager" src="https://images.pexels.com/photos/7469212/pexels-photo-7469212.jpeg?auto=compress&amp;dpr=1&amp;h=750&amp;w=1260" width="560"/>
+    <figcaption class="home-visual-caption">
+      <span class="home-visual-caption__mark" aria-hidden="true">PA</span>
+      <span><b>Atención veterinaria</b><small>Con cuidado en cada etapa</small></span>
+    </figcaption>
+  </figure>
+</section>
+<section aria-label="Accesos principales" class="home-shortcuts section-shell">
+  <a class="home-shortcut home-shortcut--services" href="#servicios">
+    <span class="home-shortcut__number">01 / ATENCIÓN</span>
+    <b>Servicios</b>
+    <small>Conoce las opciones disponibles</small>
+    <span class="home-shortcut__arrow" aria-hidden="true">↗</span>
+  </a>
+  <a class="home-shortcut home-shortcut--nutrition" href="#alimentacion-gatos">
+    <span class="home-shortcut__number">02 / NUTRICIÓN</span>
+    <b>Guía felina</b>
+    <small>Alimentación y bienestar</small>
+    <span class="home-shortcut__arrow" aria-hidden="true">↗</span>
+  </a>
+  <a class="home-shortcut home-shortcut--care" href="#cuidados">
+    <span class="home-shortcut__number">03 / CUIDADOS</span>
+    <b>Orientación</b>
+    <small>Preparación y seguimiento</small>
+    <span class="home-shortcut__arrow" aria-hidden="true">↗</span>
+  </a>
+</section>
+<section class="home-contactbar section-shell">
+  <span>¿Primera visita?</span>
+  <a href="#visita">Prepara tu consulta <span aria-hidden="true">↗</span></a>
+</section>
+</section><section aria-hidden="true" class="app-view" data-view-name="servicios" id="view-servicios"><section class="services-section section-shell" id="servicios"><div class="section-heading"><div><p class="eyebrow"><span></span> CATÁLOGO DE ATENCIÓN</p><h2>Servicios para <em>cada etapa.</em></h2></div><p class="section-lead">Revisa qué incluye cada atención y consulta la disponibilidad al solicitar tu turno.</p></div>
 <div class="catalog-tools"><label class="search-box"><span aria-hidden="true">⌕</span><input aria-label="Buscar servicios" autocomplete="off" id="serviceSearch" placeholder="Buscar consulta, vacuna, limpieza..." type="search"/><kbd>/</kbd></label><div aria-label="Filtrar servicios" class="filter-tabs" role="group"><button aria-pressed="true" class="filter-tab active" data-filter="todos" type="button">Todos</button><button aria-pressed="false" class="filter-tab" data-filter="consulta" type="button">Consulta</button><button aria-pressed="false" class="filter-tab" data-filter="prevencion" type="button">Prevención</button><button aria-pressed="false" class="filter-tab" data-filter="procedimientos" type="button">Procedimientos</button><button aria-pressed="false" class="filter-tab" data-filter="diagnostico" type="button">Diagnóstico</button><button aria-pressed="false" class="filter-tab" data-filter="bienestar" type="button">Bienestar</button></div></div>
 
 <div aria-live="polite" class="service-grid" id="serviceGrid"><p class="loading-card">Preparando el catálogo de servicios...</p></div><div aria-label="Páginas de servicios" class="view-pager" id="servicePager"></div><p aria-live="polite" class="catalog-status" id="catalogStatus" role="status">Cargando información del catálogo local.</p><p class="price-disclaimer">Los servicios que requieren evaluación se cotizan antes de realizarse.</p></section></section><section aria-hidden="true" class="app-view" data-view-name="alimentos" id="view-alimentos"><section aria-labelledby="foodTitle" class="food-section section-shell" id="alimentacion-gatos">
