@@ -300,13 +300,6 @@ body.dark-theme .field-error{color:#f0a693}
 
 .auth-switch[hidden]{display:none!important}
 
-/* Guía Parte 2: Mobile-First, Grid para estructura y Flexbox en componentes. */
-.catalog-display-tools{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin:0 0 12px}
-.catalog-display-tools>span{color:var(--muted-strong);font-size:10px}
-.catalog-view-toggle{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--primary);font-size:11px;font-weight:750;transition:background .18s,border-color .18s}
-.catalog-view-toggle:hover,.catalog-view-toggle[aria-pressed=true]{border-color:var(--primary);background:var(--surface-soft)}
-.service-grid.sim-movil{grid-template-columns:1fr!important;max-width:380px;margin-inline:auto}
-
 /* Base móvil: una columna; los layouts crecen desde el breakpoint común de 768 px. */
 .hero,.catalog-tools,.service-grid,.food-grid,.food-banner,.care-layout,.care-gallery,.booking-layout,.form-grid,.visit-card,.prep-grid,.faq-grid{grid-template-columns:1fr}
 @media(min-width:768px){
@@ -324,11 +317,6 @@ body.dark-theme .field-error{color:#f0a693}
 @media(min-width:1121px){
   .catalog-tools{grid-template-columns:minmax(240px,.75fr) minmax(0,1.25fr)}
 }
-@media(max-width:520px){
-  .catalog-display-tools{align-items:flex-start;flex-direction:column}
-  .catalog-view-toggle{width:100%}
-}
-
 /* La estructura principal usa Grid; Flexbox queda para alinear los controles internos. */
 .site-header{display:grid;grid-template-columns:minmax(0,1fr) auto}
 main.app-views{display:grid;grid-template-columns:minmax(0,1fr)}
