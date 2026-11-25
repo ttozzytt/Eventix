@@ -328,3 +328,14 @@ body.dark-theme .field-error{color:#f0a693}
   .catalog-display-tools{align-items:flex-start;flex-direction:column}
   .catalog-view-toggle{width:100%}
 }
+
+/* La estructura principal usa Grid; Flexbox queda para alinear los controles internos. */
+.site-header{display:grid;grid-template-columns:minmax(0,1fr) auto}
+main.app-views{display:grid;grid-template-columns:minmax(0,1fr)}
+.footer-inner{display:grid;grid-template-columns:1fr;align-items:start}
+@media(min-width:768px){
+  .footer-inner{grid-template-columns:auto minmax(0,1fr) auto;align-items:center}
+}
+@media(min-width:1121px){
+  .site-header{grid-template-columns:auto minmax(0,1fr) auto}
+}
