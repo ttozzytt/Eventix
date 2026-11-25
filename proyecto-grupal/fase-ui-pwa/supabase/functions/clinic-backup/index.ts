@@ -33,7 +33,7 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Método no permitido." }, 405);
   const authorization = req.headers.get("Authorization") ?? "";
-  const token = authorization.match(/^Bearer\\s+(.+)$/i)?.[1];
+  const token = authorization.match(/^Bearer\s+(.+)$/i)?.[1];
   if (!token) return json({ error: "Se requiere una sesión iniciada." }, 401);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");

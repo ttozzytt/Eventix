@@ -297,3 +297,5 @@ body.dark-theme .field-error{color:#f0a693}
 .clinic-activity-detail{display:inline-block;margin-top:5px}
 .clinic-backup-actions .button:disabled{opacity:.55;cursor:wait}
 @media(max-width:520px){.clinic-backup-actions{display:grid;grid-template-columns:1fr}.clinic-backup-actions .button{width:100%}.clinic-activity-heading{align-items:flex-start;flex-direction:column;gap:4px}}
+
+.auth-switch[hidden]{display:none!important}
