@@ -847,3 +847,8 @@ main.app-views{display:grid;grid-template-columns:minmax(0,1fr)}
 .faq-grid summary{display:flex;align-items:center;min-height:44px}
 .home-contactbar{min-height:48px}
 .home-contactbar a{min-height:44px}
+
+/* Single-view navigation: hidden is the source of truth for inactive screens. */
+main.app-views > .app-view[hidden]{display:none}
+main.app-views > .app-view:not([hidden]){display:block}
+main.app-views > .app-view.home-view:not([hidden]){display:flex}
