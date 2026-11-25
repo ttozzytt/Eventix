@@ -174,36 +174,37 @@ function renderServices(items,keepPage=false) {
   }
   visible.forEach(service => {
     const card = make('article','service-card');
-    const art = make('div','service-art');
-    const image = make('img');
+    const art = make('div','service-card__art');
+    const image = make('img','service-card__image');
     image.src = service.image;
     image.alt = service.imageAlt || 'Atención veterinaria';
     image.loading = 'lazy';
     image.decoding = 'async';
     image.width = 480;
     image.height = 280;
+    image.fetchPriority = 'low';
     image.addEventListener('error', () => {
       if (image.dataset.fallbackApplied === 'true') return;
       image.dataset.fallbackApplied = 'true';
       image.src = service.fallbackImage || './imagenes/consulta.svg';
     }, {once:true});
-    art.append(image, make('span','service-tag',service.tag || 'ATENCIÓN'));
-    const body = make('div','service-body');
-    const meta = make('div','service-meta');
+    art.append(image, make('span','service-card__tag',service.tag || 'ATENCIÓN'));
+    const body = make('div','service-card__body');
+    const meta = make('div','service-card__meta');
     meta.append(make('span','',String(service.category || '').toUpperCase()),make('span','',service.durationLabel || (service.duration+' min aprox.')));
-    body.append(meta,make('h3','',service.name),make('p','',service.description));
-    const detailButton = make('button','service-detail-toggle','Qué incluye +');
+    body.append(meta,make('h3','service-card__title',service.name),make('p','service-card__description',service.description));
+    const detailButton = make('button','service-card__detail-toggle','Qué incluye +');
     detailButton.type = 'button';
     detailButton.dataset.detailId = service.id;
     detailButton.setAttribute('aria-expanded','false');
-    const detail = make('p','service-detail',service.details || '');
+    const detail = make('p','service-card__detail',service.details || '');
     detail.id = 'service-detail-' + service.id;
     detail.hidden = true;
     detailButton.setAttribute('aria-controls',detail.id);
     body.append(detailButton,detail);
-    const bottom = make('div','service-bottom');
-    const price = make('strong','service-price',service.priceLabel || money(service.priceValue));
-    const button = make('button','service-select','Solicitar ↗');
+    const bottom = make('div','service-card__footer');
+    const price = make('strong','service-card__price',service.priceLabel || money(service.priceValue));
+    const button = make('button','service-card__action','Solicitar ↗');
     button.type = 'button';
     button.dataset.bookService = service.id;
     bottom.append(price,button);
@@ -289,20 +290,23 @@ function renderFoods(items) {
   grid.replaceChildren();
   items.forEach(item => {
     const card = make('article','food-card');
-    const art = make('div','food-art');
-    const image = make('img');
+    const art = make('div','food-card__art');
+    const image = make('img','food-card__image');
     image.src = item.image;
     image.alt = item.imageAlt || item.name;
     image.loading = 'lazy';
     image.decoding = 'async';
+    image.width = 480;
+    image.height = 320;
+    image.fetchPriority = 'low';
     image.addEventListener('error',() => {
       if (image.dataset.fallbackApplied === 'true') return;
       image.dataset.fallbackApplied = 'true';
       image.src = './imagenes/gato.svg';
     },{once:true});
     art.append(image);
-    const body = make('div','food-body');
-    body.append(make('span','food-kind',item.kind),make('h3','',item.name),make('p','',item.description),make('small','food-presentation',item.presentation),make('small','food-guidance',item.guidance || 'Consulta antes de cambiar la dieta.'));
+    const body = make('div','food-card__body');
+    body.append(make('span','food-card__kind',item.kind),make('h3','food-card__title',item.name),make('p','food-card__description',item.description),make('small','food-card__presentation',item.presentation),make('small','food-card__guidance',item.guidance || 'Consulta antes de cambiar la dieta.'));
     card.append(art,body);
     grid.append(card);
   });
@@ -914,8 +918,7 @@ async function handleAuth(event) {
         email,
         password,
         options: {
-          data: {full_name:fullName,phone:phone||null},
-          emailRedirectTo:window.location.origin + window.location.pathname
+          data: {full_name:fullName,phone:phone||null}
         }
       });
       if (result.error) throw result.error;
@@ -927,7 +930,7 @@ async function handleAuth(event) {
         await showSignedIn();
         toast('Cuenta creada.');
       } else {
-        setStatus('authStatus','Te enviamos un correo para confirmar la cuenta. Abre el enlace y vuelve a iniciar sesión.');
+        setStatus('authStatus','La cuenta quedó pendiente de confirmación. Para habilitar el acceso directo temporal, desactiva “Confirm email” en Authentication → Providers → Email en Supabase.');
       }
     } else {
       const result = await client.auth.signInWithPassword({email,password});
@@ -1035,11 +1038,29 @@ function renderAppointmentCountGuest() {
   if (!currentUser) $('appointmentCount').textContent = 'INICIA SESIÓN';
 }
 
+function applyServiceFilters(activeButton=null) {
+  const selected = activeButton || qa('[data-filter].active')[0] || qa('[data-filter]')[0];
+  const category = selected ? selected.dataset.filter : 'todos';
+  qa('[data-filter]').forEach(item => {
+    const active = item === selected;
+    item.classList.toggle('active',active);
+    item.setAttribute('aria-pressed',String(active));
+  });
+  const term = $('serviceSearch').value.trim().toLocaleLowerCase('es-BO');
+  const filtered = services.filter(item =>
+    (category === 'todos' || item.category === category) &&
+    (item.name+' '+item.description+' '+item.category+' '+item.species).toLocaleLowerCase('es-BO').includes(term)
+  );
+  renderServices(filtered);
+}
+
 function bindEvents() {
   document.addEventListener('submit',updatePetDetails);
   document.addEventListener('click',event=>{
     const link = event.target.closest('a[href^="#"]');
     if (link && link.closest('.mobile-nav')) closeMenu();
+    const filter = event.target.closest('[data-filter]');
+    if (filter) { applyServiceFilters(filter); return; }
     const page = event.target.closest('#servicePager [data-page]');
     if (page) {
       servicePage += page.dataset.page === 'next' ? 1 : -1;
@@ -1075,20 +1096,11 @@ function bindEvents() {
     }
   });
 
-  window.addEventListener('resize',()=>{
-    if (services.length) renderServices(filteredServices,true);
-  },{passive:true});
-  $('serviceSearch').addEventListener('input',()=>{
-    const term = $('serviceSearch').value.trim().toLocaleLowerCase('es-BO');
-    const filtered = services.filter(item=>(item.name+' '+item.description+' '+item.category+' '+item.species).toLocaleLowerCase('es-BO').includes(term));
-    renderServices(filtered);
-  });
-  qa('[data-filter]').forEach(button=>button.addEventListener('click',()=>{
-    qa('[data-filter]').forEach(item=>item.classList.toggle('active',item===button));
-    const term = $('serviceSearch').value.trim().toLocaleLowerCase('es-BO');
-    const filtered = services.filter(item=>(button.dataset.filter==='todos'||item.category===button.dataset.filter)&&(item.name+' '+item.description+' '+item.category+' '+item.species).toLocaleLowerCase('es-BO').includes(term));
-    renderServices(filtered);
-  }));
+  const serviceLayout = window.matchMedia('(max-width: 620px)');
+  const refreshServiceLayout = () => { if (services.length) renderServices(filteredServices,true); };
+  if (serviceLayout.addEventListener) serviceLayout.addEventListener('change',refreshServiceLayout);
+  else if (serviceLayout.addListener) serviceLayout.addListener(refreshServiceLayout);
+  $('serviceSearch').addEventListener('input',()=>applyServiceFilters());
   ['petName','petSpecies','serviceSelect','bookingDate','bookingTime'].forEach(id=>$(id).addEventListener('change',updateBookingSummary));
   $('petName').addEventListener('input',updateBookingSummary);
   $('ownerPhone').addEventListener('input',event=>event.target.value=event.target.value.replace(/\D/g,'').slice(0,8));
@@ -1124,6 +1136,9 @@ function bindEvents() {
     const dark = document.body.classList.contains('dark-theme');
     try { localStorage.setItem(THEME_KEY,dark?'dark':'light'); } catch (_) {}
     $('themeToggle').textContent = dark?'☀':'◐';
+    $('themeToggle').setAttribute('aria-pressed',String(dark));
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeMeta) themeMeta.content = dark ? '#151f1a' : '#f7f6f1';
   });
   $('menuToggle').addEventListener('click',()=>{
     menuOpen = !menuOpen;
@@ -1186,15 +1201,52 @@ async function checkConnection() {
   $('networkStatus').querySelector('b').textContent = online?'Online':'Sin conexión';
 }
 
+function initCoreVitalsDiagnostics() {
+  if (!('PerformanceObserver' in window)) return;
+  const metrics = { lcp: null, cls: 0 };
+  const observers = [];
+  try {
+    const lcpObserver = new PerformanceObserver(list => {
+      const entries = list.getEntries();
+      if (entries.length) metrics.lcp = Math.round(entries[entries.length - 1].startTime);
+    });
+    lcpObserver.observe({type:'largest-contentful-paint',buffered:true});
+    observers.push(lcpObserver);
+  } catch (_) {}
+  try {
+    const clsObserver = new PerformanceObserver(list => {
+      list.getEntries().forEach(entry => {
+        if (!entry.hadRecentInput) metrics.cls += entry.value;
+      });
+    });
+    clsObserver.observe({type:'layout-shift',buffered:true});
+    observers.push(clsObserver);
+  } catch (_) {}
+  const finish = () => {
+    observers.forEach(observer => observer.disconnect());
+    if (window.console && console.info) {
+      console.info('[Pata Andina · Rendimiento]', {
+        LCP_ms: metrics.lcp,
+        CLS: Number(metrics.cls.toFixed(4))
+      });
+    }
+  };
+  window.addEventListener('pagehide',finish,{once:true});
+}
+
 async function init() {
   try {
     if (localStorage.getItem(THEME_KEY)==='dark') {
       document.body.classList.add('dark-theme');
       $('themeToggle').textContent = '☀';
+      $('themeToggle').setAttribute('aria-pressed','true');
+      const themeMeta = document.querySelector('meta[name="theme-color"]');
+      if (themeMeta) themeMeta.content = '#151f1a';
     }
   } catch (_) {}
   bindEvents();
   bindPhotoFallbacks();
+  initCoreVitalsDiagnostics();
   setAuthMode('login');
   if (!initSupabase()) {
     setStatus('authStatus','No se pudo cargar Supabase. Revisa tu conexión y vuelve a cargar la página.',true);
