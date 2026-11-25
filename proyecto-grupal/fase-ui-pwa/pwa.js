@@ -862,6 +862,8 @@ function setAuthMode(mode) {
   $('accountPhoneWrap').hidden = !signup;
   $('accountPassword').autocomplete = signup || recovery ? 'new-password' : 'current-password';
   $('accountPassword').placeholder = recovery ? 'Escribe tu nueva contraseña' : 'Mínimo 8 caracteres';
+  $('accountEmail').required = !recovery;
+  $('accountEmail').placeholder = recovery ? 'No es necesario para este paso' : 'tucorreo@ejemplo.com';
   $('authSubmit').textContent = recovery ? 'Guardar nueva contraseña' : signup ? 'Crear cuenta' : 'Iniciar sesión';
   $('forgotPassword').hidden = signup || recovery;
   setStatus('authStatus','');
@@ -872,7 +874,7 @@ async function handleAuth(event) {
   if (!client) return setStatus('authStatus','No se pudo cargar el servicio de cuentas. Revisa tu conexión.',true);
   const email = $('accountEmail').value.trim().toLowerCase();
   const password = $('accountPassword').value;
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setStatus('authStatus','Ingresa un correo válido.',true);
+  if (authMode !== 'recovery' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setStatus('authStatus','Ingresa un correo válido.',true);
   if (password.length < 8) return setStatus('authStatus','La contraseña debe tener al menos 8 caracteres.',true);
   $('authSubmit').disabled = true;
   setStatus('authStatus',authMode==='signup'?'Creando cuenta...':'Ingresando...');
