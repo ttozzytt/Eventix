@@ -327,3 +327,10 @@ main.app-views{display:grid;grid-template-columns:minmax(0,1fr)}
 @media(min-width:1121px){
   .site-header{grid-template-columns:auto minmax(0,1fr) auto}
 }
+
+/* Vista independiente para el personal de Pata Andina. */
+.main-nav a[hidden],.mobile-nav a[hidden]{display:none!important}
+.admin-section{padding-bottom:20px}
+.admin-section .staff-panel{display:grid;gap:18px}
+.admin-section .staff-panel>h3{margin:0;color:var(--primary);font:26px var(--serif)}
+.admin-section .staff-panel>.account-appointments{margin-top:0}
