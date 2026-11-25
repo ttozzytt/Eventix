@@ -1,5 +1,5 @@
 'use strict';
-const CACHE_NAME = "pata-andina-v27-mobile-first-clean-20261125";
+const CACHE_NAME = "pata-andina-v28-admin-screen-20261125";
 const APP_SHELL = [
   "./",
   "./index.html",
