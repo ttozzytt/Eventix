@@ -533,3 +533,286 @@ main.app-views{display:grid;grid-template-columns:minmax(0,1fr)}
   html{scroll-behavior:auto}
   body *:not(.motion-allowed):not(.motion-allowed){transition-duration:.01ms;animation-duration:.01ms}
 }
+
+
+/* PATA ANDINA · REFINAMIENTO GLOBAL DE VISTAS (móvil primero) */
+.app-view{min-height:calc(100dvh - 62px);padding:14px 0 18px}
+.app-view>section{min-width:0}
+.section-shell{width:min(1180px,calc(100% - 32px))}
+.section-heading{align-items:center;gap:12px;margin-bottom:12px}
+.section-heading h2{font-size:clamp(28px,3vw,38px)}
+.section-lead{max-width:420px;font-size:11px;line-height:1.48}
+.eyebrow{margin-bottom:8px;font-size:9px;letter-spacing:1.2px}
+
+/* INICIO: distribuir el contenido en el alto disponible y no dejarlo pegado arriba. */
+.home-view{min-height:calc(100dvh - 62px);display:flex;flex-direction:column;justify-content:center;gap:clamp(14px,2.2vh,22px);padding:clamp(16px,2.5vh,26px) 0}
+.home-board{min-height:clamp(270px,38vh,350px);padding:clamp(16px,2.3vw,26px)}
+.home-board__visual,.home-board__visual>img{min-height:230px;max-height:clamp(230px,34vh,320px)}
+.home-shortcuts{margin-top:0}
+.home-shortcut{min-height:clamp(100px,14vh,126px)}
+.home-contactbar{margin-top:0;min-height:44px}
+
+/* SERVICIOS: cuatro tarjetas en una cuadrícula 2×2 en móvil; paginación conserva los 16 servicios. */
+.services-section{padding-block:0}
+.catalog-tools{grid-template-columns:minmax(0,1fr);gap:8px;margin:0 0 10px}
+.search-box{min-height:44px}
+.search-box input{min-height:42px}
+.filter-tabs{justify-content:flex-start;gap:6px}
+.filter-tab{min-height:40px;padding-inline:11px;font-size:10px}
+.service-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:stretch}
+.service-card{min-width:0}
+.service-card__art{min-height:0;aspect-ratio:16/8;overflow:hidden}
+.service-card__image{display:block;width:100%;height:100%;object-fit:cover}
+.service-card__body{gap:5px;padding:12px}
+.service-card__meta{font-size:8px;letter-spacing:.3px}
+.service-card__body h3{margin:4px 0;font-size:17px}
+.service-card__description{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:10px;line-height:1.4}
+.service-card__detail-toggle{min-height:40px;font-size:10px}
+.service-card__detail{font-size:10px;line-height:1.45}
+.service-card__footer{gap:7px;padding-top:8px}
+.service-card__price{font-size:17px}
+.service-card__action{min-width:82px;min-height:42px;padding-inline:9px;font-size:10px}
+.view-pager{margin-top:10px}
+.pager-button{min-height:42px}
+.catalog-status{min-height:0;margin:7px 0 0;font-size:9px}
+.price-disclaimer{margin-top:3px;font-size:9px}
+
+/* ALIMENTACIÓN: banner breve y seis fichas en tres columnas, sin una portada gigante. */
+.food-section{padding-block:0}
+.food-banner{grid-template-columns:104px minmax(0,1fr);margin:0 0 10px;border-radius:14px;box-shadow:none}
+.food-banner>img{width:100%;height:112px;min-height:112px;max-height:112px;object-fit:cover}
+.food-banner>div{padding:10px 12px}
+.food-banner>div>span{font-size:8px;letter-spacing:.8px}
+.food-banner h3{margin:4px 0;font-size:20px}
+.food-banner p{margin:4px 0;font-size:10px;line-height:1.4}
+.food-banner small{font-size:8px;line-height:1.3}
+.food-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.food-card{min-width:0;border-radius:11px}
+.food-card__art{height:80px;aspect-ratio:auto;overflow:hidden}
+.food-card__art img{width:100%;height:100%;object-fit:cover}
+.food-card__body{gap:4px;padding:8px}
+.food-card__kind{font-size:7px;letter-spacing:.5px}
+.food-card__body h3{font-size:13px;line-height:1.15}
+.food-card__body p{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:9px;line-height:1.35}
+.food-card__presentation,.food-card__guidance{font-size:8px;line-height:1.3}
+.food-disclaimer,.catalog-status{font-size:9px}
+
+/* CUIDADOS: las imágenes HTML tenían height=560 px; aquí se fija su altura real en móvil. */
+.care-section{padding:18px 0 14px}
+.care-layout{grid-template-columns:minmax(0,1fr);gap:12px}
+.care-layout>div:first-child>p:not(.eyebrow){margin:8px 0;font-size:11px;line-height:1.48}
+.care-section h2{font-size:clamp(27px,3.2vw,36px)}
+.care-points{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.care-points article{grid-template-columns:1fr;gap:5px;align-content:start;min-width:0;padding:10px;border-radius:11px}
+.care-points article>span{font-size:15px}
+.care-points b{font-size:12px;line-height:1.2}
+.care-points p{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;margin:3px 0 0;font-size:9px;line-height:1.35}
+.care-gallery{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:calc(100% - 32px);margin:12px auto 0}
+.care-gallery article{min-width:0;border-radius:11px}
+.care-gallery article>img{display:block;width:100%;height:clamp(82px,22vw,116px);min-height:0;max-height:116px;aspect-ratio:auto;object-fit:cover;object-position:center}
+.care-gallery b,.care-gallery span{margin-inline:8px}
+.care-gallery b{margin-top:7px;font-size:12px}
+.care-gallery span{margin-top:2px;margin-bottom:8px;font-size:8px;line-height:1.3}
+
+/* RESERVAS: formulario en dos columnas; QR disponible bajo demanda, no ocupa el primer pantallazo. */
+.booking-section{padding-block:0}
+.booking-layout{gap:10px}
+.booking-summary{padding:12px}
+.summary-top{margin-bottom:8px}
+.summary-pet{margin-bottom:8px}
+.summary-lines{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 10px}
+.summary-lines>div{min-width:0}
+.summary-lines span{font-size:8px}
+.summary-lines b{font-size:10px;overflow-wrap:anywhere}
+.summary-note{margin:8px 0;font-size:9px;line-height:1.35}
+.payment-qr-details{margin-top:8px;border:1px solid var(--line);border-radius:10px;background:var(--page)}
+.payment-qr-details>summary{display:flex;align-items:center;justify-content:space-between;min-height:44px;padding:0 12px;color:var(--primary);font-size:10px;font-weight:800;cursor:pointer}
+.payment-qr-details[open]{padding-bottom:8px}
+.payment-qr{margin:0 8px;padding:9px;gap:7px}
+.payment-qr img{width:min(100%,120px);max-height:120px;object-fit:contain}
+.payment-qr-intro,.payment-qr-note{font-size:9px;line-height:1.35}
+.payment-qr-meta{font-size:9px}
+.payment-qr-meta span{font-size:8px}
+.form-grid{gap:8px 10px}
+.field{gap:4px}
+.field>span{font-size:10px}
+.field input,.field select,.field textarea{min-height:42px;padding:8px 10px;font-size:11px}
+.field textarea{min-height:58px}
+.field-hint,.field-error{font-size:8px}
+.consent{font-size:9px}
+.submit-button{min-height:44px}
+.local-note{font-size:9px;line-height:1.4}
+
+/* PREPARAR VISITA: paneles equilibrados y preguntas desplegables compactas. */
+.visit-card{gap:12px;padding:16px}
+.visit-card h2{font-size:28px}
+.visit-card p:not(.eyebrow){font-size:10px;line-height:1.45}
+.visit-prep{padding-block:14px}
+.prep-heading{margin-bottom:10px}
+.prep-heading h2{font-size:26px}
+.prep-heading>p:not(.eyebrow){font-size:10px}
+.prep-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.prep-grid article{min-height:0;padding:10px}
+.prep-grid b{font-size:13px}
+.prep-grid p{font-size:9px;line-height:1.35}
+.faq-section{padding-block:12px}
+.faq-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.faq-grid details{padding:9px 10px;border-radius:10px}
+.faq-grid summary{font-size:10px;line-height:1.35}
+.faq-grid details p{font-size:9px;line-height:1.4}
+.emergency-section{padding:14px 0}
+.emergency-inner{gap:10px}
+.emergency-inner h2{font-size:24px}
+.emergency-inner p{font-size:10px;line-height:1.4}
+
+/* CUENTA Y ADMIN: el contenido se ordena en dos columnas sin esconder funciones. */
+.account-section,.admin-section{padding-block:0}
+.account-section .section-heading,.admin-section .section-heading{margin-bottom:10px}
+.account-dashboard{gap:10px}
+.account-card,.auth-card{padding:12px;border-radius:13px}
+.account-columns{gap:10px}
+.account-card h3{font-size:18px}
+.account-form-grid{gap:8px}
+.account-form .button{min-height:42px}
+.pet-list,.account-appointments,.medical-record-list{gap:7px}
+.appointment-item,.pet-row,.medical-record-item{padding:10px}
+
+/* La navegación, los inputs y el texto no se desbordan en pantallas estrechas. */
+@media(max-width:620px){
+  .app-view{padding:10px 0 14px}
+  .section-shell{width:calc(100% - 28px)}
+  .section-heading{flex-direction:row;align-items:flex-end;gap:8px;margin-bottom:9px}
+  .section-heading h2{font-size:25px;line-height:1.05}
+  .section-lead{max-width:48%;margin:0 0 1px;font-size:9px;line-height:1.35}
+  .eyebrow{margin-bottom:6px;font-size:8px;letter-spacing:.9px}
+  .home-view{min-height:calc(100dvh - 62px);justify-content:space-evenly;gap:10px;padding:12px 0 20px}
+  .home-board{grid-template-columns:minmax(0,1fr) 112px;gap:9px;min-height:clamp(250px,34vh,310px);padding:12px;border-radius:17px}
+  .home-board__visual,.home-board__visual>img{min-height:180px;max-height:clamp(180px,25vh,220px)}
+  .home-shortcut{min-height:clamp(92px,12vh,112px)}
+  .home-contactbar{min-height:42px}
+  .catalog-tools{gap:7px;margin-bottom:8px}
+  .filter-tabs{flex-wrap:wrap;gap:5px}
+  .filter-tab{min-height:36px;padding-inline:8px;font-size:8px}
+  .service-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .service-card{display:flex;flex-direction:column;min-height:0;border-radius:11px}
+  .service-card__art{width:100%;height:68px;min-height:68px;max-height:68px;aspect-ratio:auto}
+  .service-card__body{min-width:0;gap:4px;padding:8px}
+  .service-card__meta{display:flex;justify-content:space-between;gap:3px;font-size:7px;line-height:1.2}
+  .service-card__body h3{margin:3px 0;font-size:13px;line-height:1.14}
+  .service-card__description{min-height:2.55em;font-size:8.5px;line-height:1.28}
+  .service-card__detail-toggle{align-self:flex-start;min-height:34px;margin:0;font-size:8px}
+  .service-card__detail{margin:2px 0;padding:7px;font-size:8px}
+  .service-card__footer{gap:5px;margin-top:auto;padding-top:6px}
+  .service-card__price{font-size:12px}
+  .service-card__action{min-width:66px;min-height:36px;padding-inline:6px;font-size:8px}
+  .view-pager{gap:7px;margin-top:8px}
+  .pager-button{min-height:36px;padding-inline:9px;font-size:9px}
+  .catalog-status,.price-disclaimer{font-size:8px}
+  .food-banner{grid-template-columns:84px minmax(0,1fr);margin-bottom:8px}
+  .food-banner>img{height:92px;min-height:92px;max-height:92px}
+  .food-banner>div{padding:7px 9px}
+  .food-banner h3{font-size:16px}
+  .food-banner p{font-size:8.5px;line-height:1.3}
+  .food-banner small{font-size:7px}
+  .food-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .food-card__art{height:66px}
+  .food-card__body{gap:3px;padding:6px}
+  .food-card__body h3{font-size:11px}
+  .food-card__body p{font-size:8px;line-height:1.25}
+  .food-card__presentation,.food-card__guidance{font-size:7px;line-height:1.25}
+  .care-section{padding:13px 0 10px}
+  .care-layout{gap:9px}
+  .care-section h2{font-size:27px;line-height:1.04}
+  .care-layout>div:first-child>p:not(.eyebrow){font-size:9px;line-height:1.35;margin:6px 0}
+  .care-link{min-height:34px;font-size:9px}
+  .care-points{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .care-points article{padding:8px 7px}
+  .care-points article>span{font-size:12px}
+  .care-points b{font-size:10px;line-height:1.15}
+  .care-points p{font-size:7.5px;line-height:1.25;-webkit-line-clamp:3}
+  .care-gallery{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:9px}
+  .care-gallery article>img{height:clamp(74px,19vw,94px);min-height:0;max-height:94px;width:100%;aspect-ratio:auto}
+  .care-gallery b{font-size:10px;margin:6px 6px 0}
+  .care-gallery span{font-size:7px;margin:2px 6px 7px}
+  .booking-layout{grid-template-columns:minmax(0,1fr);gap:8px}
+  .booking-summary{order:-1;padding:9px}
+  .summary-top{margin-bottom:5px}
+  .summary-pet{margin-bottom:5px}
+  .summary-lines{gap:5px 8px}
+  .summary-note{font-size:8px;margin:5px 0}
+  .payment-qr-details>summary{min-height:40px;font-size:9px}
+  .form-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 8px}
+  .field.full{grid-column:1/-1}
+  .field input,.field select{min-height:38px;padding:6px 8px;font-size:10px}
+  .field textarea{min-height:48px}
+  .booking-card,.booking-summary{padding:10px}
+  .form-top{margin-bottom:8px;font-size:9px}
+  .booking-card .button{min-height:42px}
+  .local-note{font-size:8px}
+  .visit-card{grid-template-columns:40px minmax(0,1fr);gap:9px;padding:12px}
+  .visit-icon{width:38px;height:38px;font-size:20px}
+  .visit-card h2{font-size:23px}
+  .visit-card p:not(.eyebrow){font-size:9px}
+  .visit-actions{grid-column:1/-1}
+  .prep-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  .prep-grid article{padding:8px}
+  .prep-grid article>span{font-size:10px}
+  .prep-grid b{font-size:11px}
+  .prep-grid p{font-size:8px;line-height:1.25}
+  .faq-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  .faq-grid details{padding:8px}
+  .faq-grid summary{font-size:8px}
+  .faq-grid details p{font-size:8px}
+  .emergency-inner{display:grid;grid-template-columns:34px minmax(0,1fr);gap:8px}
+  .emergency-mark{width:32px;height:32px}
+  .emergency-inner h2{font-size:20px}
+  .emergency-inner p{font-size:8px}
+  .emergency-inner .button{grid-column:2;min-height:38px}
+  .account-dashboard{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .account-welcome,.account-columns,.account-dashboard>section:last-child{grid-column:1/-1}
+  .account-welcome{padding:10px}
+  .account-welcome h3{font-size:21px}
+  .account-card h3{font-size:15px}
+  .account-form .field>span{font-size:9px}
+  .account-form .field input,.account-form .field select{min-height:36px}
+  .account-columns{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .account-columns>.account-card{padding:8px}
+  .admin-section .staff-panel{gap:10px}
+}
+
+/* Pantallas muy estrechas: no sacrificar legibilidad ni activar desbordamiento horizontal. */
+@media(max-width:370px){
+  .home-board{grid-template-columns:minmax(0,1fr) 96px}
+  .home-shortcuts{gap:5px}
+  .home-shortcut{padding-inline:7px}
+  .home-shortcut b{font-size:13px}
+  .service-card__art{height:58px;min-height:58px;max-height:58px}
+  .service-card__body{padding:7px}
+  .service-card__body h3{font-size:12px}
+  .food-card__kind{font-size:6px}
+  .food-card__body h3{font-size:10px}
+  .care-points article{padding:7px 5px}
+  .care-points b{font-size:9px}
+  .care-points p{font-size:7px}
+  .care-gallery article>img{height:72px;max-height:72px}
+}
+
+/* Landscape de celular: aprovechar el ancho y compactar encabezado, sin tapar formularios. */
+@media(orientation:landscape) and (max-height:520px) and (max-width:900px){
+  .app-view{min-height:calc(100dvh - 54px);padding-block:7px 10px}
+  .home-view{min-height:calc(100dvh - 54px);gap:8px}
+  .home-board{grid-template-columns:minmax(0,1fr) 170px;min-height:190px;padding:10px}
+  .home-board__visual,.home-board__visual>img{min-height:165px;max-height:165px}
+  .home-shortcut{min-height:72px}
+  .service-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .service-card__art{height:54px;min-height:54px;max-height:54px}
+  .care-points{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .care-gallery article>img{height:72px;max-height:72px}
+  .food-grid{grid-template-columns:repeat(6,minmax(0,1fr))}
+}
+
+/* Respeto a la preferencia de movimiento reducido */
+@media(prefers-reduced-motion:reduce){
+  .home-shortcut,.service-card,.button{transition:none}
+  .home-view,.app-view{scroll-behavior:auto}
+}
