@@ -816,3 +816,34 @@ main.app-views{display:grid;grid-template-columns:minmax(0,1fr)}
   .home-shortcut,.service-card,.button{transition:none}
   .home-view,.app-view{scroll-behavior:auto}
 }
+
+
+/* Corrección de especificidad: la vista activa de inicio debe ser un layout flexible real. */
+.app-view.active.home-view{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:clamp(14px,2.2vh,22px);
+  min-height:calc(100dvh - 62px);
+}
+@media(max-width:620px){
+  .app-view.active.home-view{
+    display:flex;
+    flex-direction:column;
+    justify-content:space-evenly;
+    gap:10px;
+    min-height:calc(100dvh - 62px);
+  }
+}
+/* Áreas táctiles mínimas exigidas por la guía: 44 × 44 px. */
+.icon-button,.menu-toggle{width:44px;height:44px;min-width:44px;min-height:44px}
+.button,.home-action-primary,.home-action-secondary,.care-link,.care-gallery a{min-height:44px}
+.filter-tab,.pager-button{min-height:44px}
+.search-box,.search-box input{min-height:44px}
+.service-card__detail-toggle{min-height:44px}
+.service-card__action{min-height:44px}
+.payment-qr-details>summary{min-height:44px}
+.field input,.field select{min-height:44px}
+.faq-grid summary{display:flex;align-items:center;min-height:44px}
+.home-contactbar{min-height:48px}
+.home-contactbar a{min-height:44px}
