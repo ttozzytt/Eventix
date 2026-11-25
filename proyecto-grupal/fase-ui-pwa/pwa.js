@@ -2,43 +2,66 @@
   'use strict';
   const main = document.querySelector('main.app-views');
   if (!main) return;
-  const views = Array.from(main.querySelectorAll(':scope > .app-view'));
+
+  // Use direct children for compatibility and keep view state explicit.
+  const views = Array.from(main.children).filter(element =>
+    element.classList && element.classList.contains('app-view')
+  );
+  if (!views.length) return;
+
   const findView = hash => {
     const id = String(hash || '').replace(/^#/,'');
-    if (!id) return views[0] || null;
+    if (!id) return views[0];
+    const direct = views.find(view =>
+      view.id === id || view.id === 'view-' + id || view.dataset.viewName === id
+    );
+    if (direct) return direct;
     const target = document.getElementById(id);
-    return (target && target.closest('.app-view')) || views.find(view => view.id === 'view-' + id) || null;
+    return target ? views.find(view => view.contains(target)) || null : null;
   };
+
   const showView = target => {
     const view = typeof target === 'string' ? findView(target) : target;
-    if (!view || !views.includes(view)) return;
+    if (!view || !views.includes(view)) return false;
+
     views.forEach(item => {
       const active = item === view;
-      item.classList.toggle('active',active);
-      item.setAttribute('aria-hidden',String(!active));
+      item.hidden = !active;
+      item.classList.toggle('active', active);
+      item.setAttribute('aria-hidden', String(!active));
+      if ('inert' in item) item.inert = !active;
     });
+
     const name = view.dataset.viewName || view.id.replace('view-','');
     document.querySelectorAll('.main-nav a,.mobile-nav a').forEach(link => {
       const active = findView(link.getAttribute('href')) === view;
-      link.classList.toggle('active',active);
+      link.classList.toggle('active', active);
       if (active) link.setAttribute('aria-current','page');
       else link.removeAttribute('aria-current');
     });
-    if (location.hash !== '#' + name && history.replaceState) {
-      const firstId = view.id === 'view-inicio' ? 'inicio' : (view.querySelector('[id]')?.id || name);
-      history.replaceState(null,'','#' + firstId);
+
+    const firstId = view.id === 'view-inicio'
+      ? 'inicio'
+      : (view.querySelector('[id]')?.id || name);
+    if (location.hash !== '#' + firstId && history.replaceState) {
+      history.replaceState(null, '', '#' + firstId);
     }
-    view.scrollTop = 0;
+
     window.scrollTo({top:0,behavior:'auto'});
     document.dispatchEvent(new CustomEvent('appviewchange',{detail:{name}}));
+    return true;
   };
-  document.addEventListener('click',event => {
-    const link = event.target.closest('a[href^="#"]');
+
+  document.addEventListener('click', event => {
+    const element = event.target instanceof Element ? event.target : event.target.parentElement;
+    const link = element && element.closest('a[href^="#"]');
     if (!link) return;
     const view = findView(link.getAttribute('href'));
     if (!view) return;
+
     event.preventDefault();
     showView(view);
+
     const menu = document.getElementById('mobileNav');
     const toggle = document.getElementById('menuToggle');
     if (menu && menu.classList.contains('open')) {
@@ -49,13 +72,15 @@
         toggle.textContent = '☰';
       }
     }
-  },true);
-  window.addEventListener('hashchange',() => {
+  }, true);
+
+  window.addEventListener('hashchange', () => {
     const view = findView(location.hash);
     if (view) showView(view);
   });
+
   window.appShowView = target => showView(target);
-  const initial = findView(location.hash) || views[0];
+  const initial = findView(location.hash) || views.find(view => view.id === 'view-inicio') || views[0];
   showView(initial);
 })();
 (() => {
