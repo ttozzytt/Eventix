@@ -596,7 +596,10 @@ async function loadAccountData() {
   await loadMedicalRecords();
   $('staffPanel').hidden = !isStaff;
   $('staffActivationForm').hidden = isStaff;
-  if (isStaff) await loadStaffData();
+  if (isStaff) {
+    await loadStaffData();
+    await loadClinicActivity();
+  }
 }
 
 async function loadMedicalRecords() {
@@ -630,6 +633,113 @@ async function loadMedicalRecords() {
     if (record.next_visit_date) article.append(make('small','', 'Próximo control: '+String(record.next_visit_date).split('-').reverse().join('/')));
     list.append(article);
   });
+}
+
+async function loadClinicActivity() {
+  if (!isStaff) return;
+  const list = $('clinicActivityLog');
+  if (!list) return;
+  list.replaceChildren(make('p','loading-card','Cargando actividad...'));
+  const result = await client.from('clinic_activity_log')
+    .select('id,event_type,event_summary,details,created_at')
+    .order('created_at',{ascending:false})
+    .limit(12);
+  list.replaceChildren();
+  if (result.error) {
+    list.append(make('p','empty-appointments',safeError(result.error)));
+    return;
+  }
+  const items = result.data || [];
+  if (!items.length) {
+    list.append(make('p','empty-appointments','Todavía no hay movimientos registrados.'));
+    return;
+  }
+  const labels = {
+    tutor_profile_created:'Nuevo tutor',
+    pet_registered:'Mascota registrada',
+    appointment_requested:'Solicitud de turno',
+    appointment_status_changed:'Cambio de estado',
+    medical_record_added:'Atención médica'
+  };
+  items.forEach(item => {
+    const entry = make('article','clinic-activity-item');
+    const heading = make('div','clinic-activity-heading');
+    heading.append(make('b','',labels[item.event_type] || 'Actividad de la clínica'));
+    const timestamp = new Date(item.created_at);
+    const dateText = Number.isNaN(timestamp.getTime()) ? 'Fecha no disponible' : timestamp.toLocaleString('es-BO',{
+      dateStyle:'short',
+      timeStyle:'short',
+      timeZone:'America/La_Paz'
+    });
+    heading.append(make('time','',dateText));
+    entry.append(heading,make('p','',item.event_summary));
+    if (item.event_type === 'appointment_status_changed' && item.details) {
+      const from = statusName(item.details.from || '');
+      const to = statusName(item.details.to || '');
+      if (from && to) entry.append(make('small','clinic-activity-detail',from + ' → ' + to));
+    }
+    list.append(entry);
+  });
+}
+
+async function downloadClinicBackup() {
+  if (!isStaff) return;
+  if (!window.confirm('El respaldo contiene datos personales e historiales de la clínica. Guárdalo en un lugar privado. ¿Descargar ahora?')) return;
+  const button = $('downloadClinicBackup');
+  button.disabled = true;
+  setStatus('backupStatus','Preparando respaldo...');
+  try {
+    const result = await client.functions.invoke('clinic-backup',{body:{action:'export'}});
+    if (result.error) throw result.error;
+    const backup = result.data;
+    if (!backup || backup.format !== 'pata-andina-backup' || backup.version !== 1 || !backup.watermark || !Array.isArray(backup.control_array)) {
+      throw new Error('El servidor devolvió un archivo de respaldo no válido.');
+    }
+    const blob = new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const stamp = new Date().toISOString().replace(/[:.]/g,'-');
+    link.href = url;
+    link.download = 'pata-andina-respaldo-' + stamp + '.json';
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+    setStatus('Respaldo descargado. Guárdalo en un lugar seguro.');
+  } catch (error) {
+    setStatus('No se pudo generar el respaldo: ' + safeError(error),true);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function restoreClinicBackup(event) {
+  if (!isStaff) return;
+  const input = event.target;
+  const file = input.files && input.files[0];
+  if (!file) return;
+  input.value = '';
+  if (file.size > 5 * 1024 * 1024) {
+    setStatus('El archivo supera el límite de 5 MB.',true);
+    return;
+  }
+  try {
+    const backup = JSON.parse(await file.text());
+    if (!backup || backup.format !== 'pata-andina-backup' || backup.version !== 1 || !backup.tables || typeof backup.tables !== 'object') {
+      throw new Error('El archivo no corresponde a un respaldo de Pata Andina.');
+    }
+    if (!window.confirm('La restauración solo agrega registros que no existan. No elimina ni sobrescribe los datos actuales. ¿Deseas continuar?')) return;
+    setStatus('Validando integridad y restaurando datos...');
+    const result = await client.functions.invoke('clinic-backup',{body:{action:'restore',backup}});
+    if (result.error) throw result.error;
+    const counts = result.data && result.data.result && result.data.result.restored;
+    if (!counts) throw new Error('El servidor no devolvió el resumen de restauración.');
+    await loadAccountData();
+    const total = Object.values(counts).reduce((sum,value)=>sum + Number(value || 0),0);
+    setStatus('Restauración finalizada. Se agregaron ' + total + ' registros que faltaban. Los existentes se conservaron.');
+  } catch (error) {
+    setStatus('No se pudo restaurar el archivo: ' + safeError(error),true);
+  }
 }
 
 async function loadStaffData() {
@@ -991,6 +1101,9 @@ function bindEvents() {
   $('petForm').addEventListener('submit',savePet);
   $('medicalRecordForm').addEventListener('submit',saveMedicalRecord);
   $('staffActivationForm').addEventListener('submit',activateClinicStaff);
+  $('downloadClinicBackup').addEventListener('click',downloadClinicBackup);
+  $('restoreClinicBackup').addEventListener('click',()=>$('clinicBackupFile').click());
+  $('clinicBackupFile').addEventListener('change',restoreClinicBackup);
   document.addEventListener('keydown',event=>{
     if (event.key==='Escape') {
       closeBookingModal();

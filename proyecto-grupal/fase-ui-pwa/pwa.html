@@ -6,7 +6,7 @@
 <meta content="#315d4d" name="theme-color"/><meta content="Atención veterinaria para perros y gatos en La Paz. Servicios, cuidados y solicitudes de turno." name="description"/>
 <meta content="yes" name="mobile-web-app-capable"/><meta content="yes" name="apple-mobile-web-app-capable"/>
 <title>Pata Andina · Centro Veterinario</title><link href="./manifest.json" rel="manifest"/><link href="./icons/pata-andina-mark.svg" rel="icon" type="image/svg+xml"/><link href="./icons/icon-192.png" rel="apple-touch-icon"/>
-<link href="./pwa.css?v=supabase-cuenta-20261124-r7" rel="stylesheet"/><script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2"></script><script defer src="./pwa.js?v=supabase-cuenta-20261124-r7"></script>
+<link href="./pwa.css?v=clinic-activity-backup-20261125-r1" rel="stylesheet"/><script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2"></script><script defer src="./pwa.js?v=clinic-activity-backup-20261125-r1"></script>
 </head><body>
 <header class="site-header"><a aria-label="Pata Andina Vet, inicio" class="brand" href="#inicio"><img alt="" aria-hidden="true" class="brand-logo" height="42" src="./icons/pata-andina-mark.svg" width="42"/><span class="brand-name"><b>PATA ANDINA</b><small>CENTRO VETERINARIO</small></span></a>
 <nav aria-label="Navegación principal" class="main-nav"><a data-layer-link="true" href="#inicio">Inicio</a><a data-layer-link="true" href="#servicios">Servicios</a><a data-layer-link="true" href="#alimentacion-gatos">Alimentación felina</a><a data-layer-link="true" href="#cuidados">Cuidados</a><a data-layer-link="true" href="#reservar">Reservar</a><a data-layer-link="true" href="#mis-turnos">Mis turnos</a><a data-layer-link="true" href="#cuenta">Mi cuenta</a><a data-layer-link="true" href="#visita">Tu visita</a></nav>
@@ -106,6 +106,20 @@
 <section class="account-card staff-panel" id="staffPanel" hidden>
 <h3>Administración de la clínica</h3>
 <div id="staffAppointments" class="account-appointments"><p class="empty-appointments">No hay solicitudes pendientes.</p></div>
+<section class="account-card clinic-tools-card" id="clinicMaintenance">
+<h3>Actividad y respaldo</h3>
+<p class="clinic-tools-note">La base conserva los últimos 200 movimientos automáticos. El respaldo incluye una huella de integridad; no contiene contraseñas ni credenciales de acceso.</p>
+<div class="clinic-backup-actions">
+<button class="button button-outline" id="downloadClinicBackup" type="button">Descargar respaldo JSON</button>
+<button class="button button-outline" id="restoreClinicBackup" type="button">Restaurar respaldo</button>
+<input id="clinicBackupFile" type="file" accept="application/json,.json" hidden/>
+</div>
+<p class="account-status" id="backupStatus" aria-live="polite"></p>
+<details class="clinic-activity-details">
+<summary>Ver actividad reciente</summary>
+<div class="clinic-activity-list" id="clinicActivityLog" aria-live="polite"><p class="empty-appointments">Cargando actividad...</p></div>
+</details>
+</section>
 <form id="medicalRecordForm" class="account-form">
 <h4>Registrar atención</h4>
 <div class="account-form-grid">
