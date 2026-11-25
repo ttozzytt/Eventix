@@ -334,3 +334,14 @@ main.app-views{display:grid;grid-template-columns:minmax(0,1fr)}
 .admin-section .staff-panel{display:grid;gap:18px}
 .admin-section .staff-panel>h3{margin:0;color:var(--primary);font:26px var(--serif)}
 .admin-section .staff-panel>.account-appointments{margin-top:0}
+
+
+/* Método de pago único: QR Altoke */
+.payment-qr{display:grid;justify-items:center;gap:10px;margin-top:18px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--page);text-align:center}
+.payment-qr-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;color:var(--muted-strong);font-size:10px;font-weight:850;letter-spacing:.9px}
+.payment-qr-heading b{color:var(--accent)}
+.payment-qr-intro,.payment-qr-note{margin:0;color:var(--muted);font-size:11px;line-height:1.55}
+.payment-qr img{display:block;width:min(100%,230px);height:auto;padding:6px;border-radius:8px;background:#fff;image-rendering:crisp-edges}
+.payment-qr-meta{display:grid;gap:3px;margin:0;color:var(--text);font-size:11px;font-weight:700}
+.payment-qr-meta span{color:var(--muted-strong);font-size:10px;font-weight:500}
+.payment-qr-note{font-size:10px}

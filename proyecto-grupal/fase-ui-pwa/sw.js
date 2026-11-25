@@ -1,5 +1,5 @@
 'use strict';
-const CACHE_NAME = "pata-andina-v28-admin-screen-20261125";
+const CACHE_NAME = "pata-andina-v29-qr-payment-20261125";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -32,7 +32,8 @@ const APP_SHELL = [
   "./imagenes/vet-diagnostico.webp",
   "./imagenes/vet-evaluacion.webp",
   "./imagenes/vet-atencion-felina.webp",
-  "./imagenes/vet-cuidados.webp"
+  "./imagenes/vet-cuidados.webp",
+  "./imagenes/pago-altoke-qr.png"
 ];
 
 self.addEventListener('install', event => {
