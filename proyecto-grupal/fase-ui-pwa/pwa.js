@@ -1544,6 +1544,7 @@ async function init() {
         $('authPanel').hidden = false;
         setAuthMode('login');
         renderAppointments();
+        setTimeout(()=>syncPendingBookings(),0);
       } else if (event==='PASSWORD_RECOVERY' && sessionData && sessionData.user) {
         recoveringPassword = true;
         currentUser = sessionData.user;
