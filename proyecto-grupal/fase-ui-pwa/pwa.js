@@ -112,6 +112,11 @@ let menuOpen = false;
 let guestNotice = '';
 let isStaff = false;
 let recoveringPassword = false;
+let offlineQueueDbPromise = null;
+let offlineQueueSyncInProgress = false;
+const OFFLINE_QUEUE_DB = 'pata-andina-local';
+const OFFLINE_QUEUE_STORE = 'appointment-requests';
+
 
 const today = () => {
   const date = new Date();
@@ -161,6 +166,251 @@ const safeError = error => {
   return message || 'No se pudo completar la operación. Intenta nuevamente.';
 };
 
+function createOfflineRequestId() {
+  if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
+  const bytes = new Uint8Array(16);
+  window.crypto.getRandomValues(bytes);
+  bytes[6] = (bytes[6] & 15) | 64;
+  bytes[8] = (bytes[8] & 63) | 128;
+  const hex = Array.from(bytes, value => value.toString(16).padStart(2,'0')).join('');
+  return hex.slice(0,8)+'-'+hex.slice(8,12)+'-'+hex.slice(12,16)+'-'+hex.slice(16,20)+'-'+hex.slice(20);
+}
+
+function openOfflineQueueDB() {
+  if (!('indexedDB' in window)) return Promise.reject(new Error('Este navegador no permite guardar solicitudes sin conexión.'));
+  if (offlineQueueDbPromise) return offlineQueueDbPromise;
+  offlineQueueDbPromise = new Promise((resolve,reject) => {
+    const request = window.indexedDB.open(OFFLINE_QUEUE_DB,1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(OFFLINE_QUEUE_STORE)) db.createObjectStore(OFFLINE_QUEUE_STORE,{keyPath:'id'});
+    };
+    request.onsuccess = () => {
+      const db = request.result;
+      db.onversionchange = () => db.close();
+      resolve(db);
+    };
+    request.onerror = () => reject(request.error || new Error('No se pudo abrir el almacenamiento local.'));
+    request.onblocked = () => reject(new Error('El almacenamiento local está ocupado por otra pestaña.'));
+  });
+  return offlineQueueDbPromise;
+}
+
+async function readOfflineQueue() {
+  const db = await openOfflineQueueDB();
+  return new Promise((resolve,reject) => {
+    const transaction = db.transaction(OFFLINE_QUEUE_STORE,'readonly');
+    const request = transaction.objectStore(OFFLINE_QUEUE_STORE).getAll();
+    request.onsuccess = () => resolve(Array.isArray(request.result) ? request.result : []);
+    request.onerror = () => reject(request.error || new Error('No se pudo leer la cola local.'));
+    transaction.onabort = () => reject(transaction.error || new Error('No se pudo leer la cola local.'));
+  });
+}
+
+async function writeOfflineQueueItem(item) {
+  const db = await openOfflineQueueDB();
+  return new Promise((resolve,reject) => {
+    const transaction = db.transaction(OFFLINE_QUEUE_STORE,'readwrite');
+    transaction.objectStore(OFFLINE_QUEUE_STORE).put(item);
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error || new Error('No se pudo guardar la solicitud en este dispositivo.'));
+    transaction.onabort = () => reject(transaction.error || new Error('No se pudo guardar la solicitud en este dispositivo.'));
+  });
+}
+
+async function removeOfflineQueueItem(id) {
+  const db = await openOfflineQueueDB();
+  return new Promise((resolve,reject) => {
+    const transaction = db.transaction(OFFLINE_QUEUE_STORE,'readwrite');
+    transaction.objectStore(OFFLINE_QUEUE_STORE).delete(id);
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error || new Error('No se pudo actualizar la cola local.'));
+    transaction.onabort = () => reject(transaction.error || new Error('No se pudo actualizar la cola local.'));
+  });
+}
+
+async function resolveQueuedOwnerId() {
+  if (currentUser && currentUser.id) return currentUser.id;
+  if (!client) return null;
+  try {
+    const sessionResult = await client.auth.getSession();
+    return sessionResult.data && sessionResult.data.session && sessionResult.data.session.user
+      ? sessionResult.data.session.user.id
+      : null;
+  } catch (_) { return null; }
+}
+
+function createAppointmentPayload(data,requestId,ownerId,petId=null) {
+  return {
+    id: requestId || createOfflineRequestId(),
+    owner_id: ownerId || null,
+    pet_id: petId || null,
+    owner_name: data.ownerName,
+    owner_phone: data.ownerPhone,
+    owner_email: data.ownerEmail || null,
+    pet_name: data.petName,
+    species: data.species,
+    pet_age: data.petAge || null,
+    service_id: data.serviceId,
+    service_name: data.serviceName,
+    price_label: data.priceLabel,
+    duration_minutes: data.duration,
+    requested_date: data.date,
+    requested_time: data.time,
+    notes: data.note || null,
+    status: 'requested'
+  };
+}
+
+function isNetworkFailure(error) {
+  const status = Number(error && (error.status || error.statusCode || (error.context && error.context.status)) || 0);
+  if ([0,408,425,429,502,503,504,520,522,524].includes(status)) return true;
+  const message = String(error && (error.message || error) || '').toLowerCase();
+  return !navigator.onLine || /failed to fetch|fetch failed|networkerror|network error|load failed|connection reset|timed out|timeout|temporarily unavailable/.test(message);
+}
+
+async function queueBookingOffline(data,existingPayload=null) {
+  const ownerId = existingPayload && existingPayload.owner_id
+    ? existingPayload.owner_id
+    : await resolveQueuedOwnerId();
+  const payload = existingPayload
+    ? {...existingPayload,owner_id:ownerId || null}
+    : createAppointmentPayload(data,createOfflineRequestId(),ownerId,null);
+  if (!ownerId) payload.pet_id = null;
+  const item = {
+    id: payload.id,
+    owner_id: ownerId || null,
+    payload,
+    petData: {name:data.petName,species:data.species,age_text:data.petAge || null},
+    queued_at: new Date().toISOString(),
+    attempts: 0
+  };
+  await writeOfflineQueueItem(item);
+  guestNotice = 'Solicitud guardada en este dispositivo. Se enviará cuando vuelva la conexión; la clínica aún debe confirmar el turno.';
+  closeBookingModal();
+  $('bookingForm').reset();
+  $('bookingDate').min = today();
+  $('bookingDate').value = today();
+  updateBookingSummary();
+  renderAppointments();
+  toast('Solicitud guardada localmente. Pendiente de envío.');
+  if (window.appShowView) window.appShowView('turnos');
+}
+
+async function appendOfflineQueueItems(target,countId=null,baseCount=0) {
+  if (!target) return;
+  try {
+    const allItems = await readOfflineQueue();
+    const items = allItems
+      .filter(item => currentUser ? item.owner_id === currentUser.id : item.owner_id === null)
+      .sort((a,b) => String(a.queued_at || '').localeCompare(String(b.queued_at || '')));
+    items.forEach(item => {
+      const row = make('article','appointment-list__item');
+      row.dataset.pendingOffline = 'true';
+      const info = make('div','appointment-list__info');
+      const date = String(item.payload.requested_date || '').split('-').reverse().join('/');
+      const time = String(item.payload.requested_time || '').slice(0,5);
+      info.append(
+        make('b','',item.payload.pet_name + ' · ' + item.payload.service_name),
+        make('p','',[item.payload.species,date,time].filter(Boolean).join(' · ')),
+        make('small','offline-queue-note','Guardada en este dispositivo. Todavía no fue recibida por la clínica.')
+      );
+      const actions = make('div','appointment-list__actions');
+      const status = make('span','status-pill status-pill--offline','Pendiente de envío');
+      status.setAttribute('aria-label','Solicitud pendiente de sincronización');
+      actions.append(status);
+      row.append(info,actions);
+      target.append(row);
+    });
+    if (countId && items.length) {
+      const total = baseCount + items.length;
+      $(countId).textContent = total + (total === 1 ? ' SOLICITUD' : ' SOLICITUDES');
+    }
+  } catch (error) {
+    if (window.console && console.warn) console.warn('[Pata Andina] Cola local no disponible:',error);
+  }
+}
+
+async function syncPendingBookings() {
+  if (offlineQueueSyncInProgress || !navigator.onLine || !client) return;
+  offlineQueueSyncInProgress = true;
+  let sent = 0;
+  let pausedByNetwork = false;
+  try {
+    if (!currentUser) {
+      try {
+        const authResult = await client.auth.getUser();
+        if (!authResult.error && authResult.data && authResult.data.user) {
+          currentUser = authResult.data.user;
+          await loadAccountData();
+        }
+      } catch (_) {}
+    }
+    const allItems = await readOfflineQueue();
+    const pending = allItems.filter(item => item.owner_id
+      ? !!currentUser && currentUser.id === item.owner_id
+      : !currentUser);
+    for (const item of pending) {
+      const payload = {...item.payload};
+      try {
+        if (item.owner_id) {
+          if (!currentUser || currentUser.id !== item.owner_id) continue;
+          if (!payload.pet_id && item.petData) {
+            payload.pet_id = await ensurePetForUser({
+              petName:item.petData.name,
+              species:item.petData.species,
+              petAge:item.petData.age_text || ''
+            });
+          }
+        } else if (currentUser) {
+          continue;
+        }
+        const result = await client.from('appointment_requests').insert(payload);
+        if (result.error) {
+          if (String(result.error.code || '') === '23505') {
+            await removeOfflineQueueItem(item.id);
+            sent++;
+            continue;
+          }
+          if (isNetworkFailure(result.error)) {
+            pausedByNetwork = true;
+            break;
+          }
+          item.attempts = (item.attempts || 0) + 1;
+          item.last_error = safeError(result.error);
+          await writeOfflineQueueItem(item);
+          continue;
+        }
+        await removeOfflineQueueItem(item.id);
+        sent++;
+      } catch (error) {
+        if (isNetworkFailure(error)) {
+          pausedByNetwork = true;
+          break;
+        }
+        item.attempts = (item.attempts || 0) + 1;
+        item.last_error = safeError(error);
+        await writeOfflineQueueItem(item);
+      }
+    }
+  } catch (error) {
+    if (window.console && console.warn) console.warn('[Pata Andina] No se pudo sincronizar la cola:',error);
+  } finally {
+    offlineQueueSyncInProgress = false;
+  }
+  if (sent) {
+    guestNotice = sent + (sent === 1 ? ' solicitud pendiente fue enviada.' : ' solicitudes pendientes fueron enviadas.') + ' La clínica debe confirmar cada turno.';
+    toast(sent + (sent === 1 ? ' solicitud enviada.' : ' solicitudes enviadas.'));
+    renderAppointments();
+    if (currentUser) await loadAppointmentsInto($('accountAppointments'),null);
+  } else if (pausedByNetwork) {
+    guestNotice = 'La conexión se interrumpió. Las solicitudes siguen guardadas en este dispositivo.';
+    renderAppointments();
+  }
+}
+
+
+
 function initSupabase() {
   if (!window.supabase || typeof window.supabase.createClient !== 'function') return false;
   client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -170,7 +420,7 @@ function initSupabase() {
 }
 
 function bindPhotoFallbacks() {
-  const pairs = [['.hero-visual img','./imagenes/portada-veterinaria.svg'],['.food-banner img','./imagenes/gato.svg']];
+  const pairs = [['.home-board__visual img','./imagenes/portada-veterinaria.svg'],['.food-banner img','./imagenes/gato.svg']];
   pairs.forEach(([selector,fallback]) => {
     const image = document.querySelector(selector);
     if (!image) return;
@@ -240,12 +490,12 @@ function renderServices(items,keepPage=false) {
   const pager = $('servicePager');
   pager.replaceChildren();
   if (items.length > pageSize()) {
-    const previous = make('button','pager-button','← Anterior');
+    const previous = make('button','service-pager__button','← Anterior');
     previous.type = 'button';
     previous.dataset.page = 'prev';
     previous.disabled = servicePage === 1;
     const label = make('span','', 'Página ' + servicePage + ' de ' + pageCount);
-    const next = make('button','pager-button','Siguiente →');
+    const next = make('button','service-pager__button','Siguiente →');
     next.type = 'button';
     next.dataset.page = 'next';
     next.disabled = servicePage === pageCount;
@@ -433,6 +683,12 @@ async function ensurePetForUser(data) {
 
 async function confirmBooking() {
   if (!pendingBooking) return;
+  const data = pendingBooking;
+  if (!navigator.onLine) {
+    try { await queueBookingOffline(data); }
+    catch (error) { toast('No se pudo guardar la solicitud en este dispositivo: ' + safeError(error),true); }
+    return;
+  }
   if (!client) {
     toast('No se pudo conectar con la base de datos. Revisa tu conexión e inténtalo de nuevo.',true);
     return;
@@ -440,29 +696,14 @@ async function confirmBooking() {
   const button = $('confirmBooking');
   button.disabled = true;
   button.textContent = 'Enviando...';
+  let submissionPayload = null;
   try {
-    const data = pendingBooking;
     let petId = null;
     if (currentUser) petId = await ensurePetForUser(data);
-    const payload = {
-      owner_id: currentUser ? currentUser.id : null,
-      pet_id: petId,
-      owner_name: data.ownerName,
-      owner_phone: data.ownerPhone,
-      owner_email: data.ownerEmail || null,
-      pet_name: data.petName,
-      species: data.species,
-      pet_age: data.petAge || null,
-      service_id: data.serviceId,
-      service_name: data.serviceName,
-      price_label: data.priceLabel,
-      duration_minutes: data.duration,
-      requested_date: data.date,
-      requested_time: data.time,
-      notes: data.note || null,
-      status: 'requested'
-    };
-    const result = await client.from('appointment_requests').insert(payload);
+    submissionPayload = createAppointmentPayload(
+      data,createOfflineRequestId(),currentUser ? currentUser.id : null,petId
+    );
+    const result = await client.from('appointment_requests').insert(submissionPayload);
     if (result.error) throw result.error;
     guestNotice = 'Solicitud enviada correctamente. El horario está pendiente de confirmación.';
     closeBookingModal();
@@ -477,6 +718,11 @@ async function confirmBooking() {
   } catch (error) {
     button.disabled = false;
     button.textContent = 'Enviar solicitud';
+    if (isNetworkFailure(error) && pendingBooking) {
+      try { await queueBookingOffline(data,submissionPayload); }
+      catch (queueError) { toast('Se perdió la conexión y no se pudo guardar la solicitud localmente: ' + safeError(queueError),true); }
+      return;
+    }
     toast(safeError(error),true);
   }
 }
@@ -488,6 +734,7 @@ function renderAppointments() {
   if (!currentUser) {
     list.append(make('p','empty-appointments','Inicia sesión para consultar tus solicitudes. Las solicitudes enviadas sin cuenta quedan registradas para que la clínica las revise.'));
     $('appointmentCount').textContent = 'CUENTA';
+    appendOfflineQueueItems(list,'appointmentCount',0);
   } else {
     loadAppointmentsInto(list,'appointmentCount');
   }
@@ -510,30 +757,32 @@ async function loadAppointmentsInto(target,countId) {
   if (result.error) {
     target.append(make('p','empty-appointments',safeError(result.error)));
     if (countId) $(countId).textContent = 'ERROR';
+    await appendOfflineQueueItems(target,countId,0);
     return;
   }
   const items = result.data || [];
   if (countId) $(countId).textContent = items.length + (items.length===1?' SOLICITUD':' SOLICITUDES');
   if (!items.length) {
     target.append(make('p','empty-appointments','Todavía no tienes solicitudes registradas.'));
-    return;
+  } else {
+    items.forEach(item => {
+      const row = make('article','appointment-list__item');
+      const info = make('div','appointment-list__info');
+      const date = String(item.requested_date).split('-').reverse().join('/');
+      info.append(make('b','',item.pet_name + ' · ' + item.service_name),make('p','',item.species + ' · ' + date + ' a las ' + String(item.requested_time).slice(0,5) + ' · ' + item.price_label));
+      const actions = make('div','appointment-list__actions');
+      actions.append(make('span','status-pill',statusName(item.status)));
+      if (item.status === 'requested') {
+        const cancel = make('button','cancel-button','Cancelar solicitud');
+        cancel.type = 'button';
+        cancel.dataset.cancelAppointment = item.id;
+        actions.append(cancel);
+      }
+      row.append(info,actions);
+      target.append(row);
+    });
   }
-  items.forEach(item => {
-    const row = make('article','appointment-item');
-    const info = make('div','appointment-info');
-    const date = String(item.requested_date).split('-').reverse().join('/');
-    info.append(make('b','',item.pet_name + ' · ' + item.service_name),make('p','',item.species + ' · ' + date + ' a las ' + String(item.requested_time).slice(0,5) + ' · ' + item.price_label));
-    const actions = make('div','appointment-actions');
-    actions.append(make('span','appointment-state',statusName(item.status)));
-    if (item.status === 'requested') {
-      const cancel = make('button','cancel-button','Cancelar solicitud');
-      cancel.type = 'button';
-      cancel.dataset.cancelAppointment = item.id;
-      actions.append(cancel);
-    }
-    row.append(info,actions);
-    target.append(row);
-  });
+  await appendOfflineQueueItems(target,countId,items.length);
 }
 
 async function cancelAppointment(id) {
@@ -554,8 +803,8 @@ function renderPets() {
     list.append(make('p','empty-appointments','Aún no has registrado mascotas.'));
   } else {
     currentPets.forEach(pet => {
-      const card = make('article','pet-row');
-      const info = make('div','pet-info');
+      const card = make('article','pet-list__item');
+      const info = make('div','pet-list__info');
       info.append(make('b','',pet.name),make('p','',[pet.species,pet.age_text,pet.breed].filter(Boolean).join(' · ')));
       card.append(info);
       if (!isStaff) {
@@ -564,26 +813,26 @@ function renderPets() {
         const summary = make('summary','','Editar datos');
         const form = make('form','pet-edit-form');
         form.dataset.editPet = pet.id;
-        const nameLabel = make('label','pet-edit-field','Nombre');
+        const nameLabel = make('label','pet-edit-form-field','Nombre');
         const nameInput = document.createElement('input');
         nameInput.name = 'name';
         nameInput.maxLength = 60;
         nameInput.required = true;
         nameInput.value = pet.name;
         nameLabel.append(nameInput);
-        const speciesLabel = make('label','pet-edit-field','Especie');
+        const speciesLabel = make('label','pet-edit-form-field','Especie');
         const speciesSelect = document.createElement('select');
         speciesSelect.name = 'species';
         ['Perro','Gato','Otra especie'].forEach(value=>speciesSelect.add(new Option(value,value)));
         speciesSelect.value = pet.species;
         speciesLabel.append(speciesSelect);
-        const ageLabel = make('label','pet-edit-field','Edad');
+        const ageLabel = make('label','pet-edit-form-field','Edad');
         const ageInput = document.createElement('input');
         ageInput.name = 'age_text';
         ageInput.maxLength = 40;
         ageInput.value = pet.age_text || '';
         ageLabel.append(ageInput);
-        const breedLabel = make('label','pet-edit-field','Raza');
+        const breedLabel = make('label','pet-edit-form-field','Raza');
         const breedInput = document.createElement('input');
         breedInput.name = 'breed';
         breedInput.maxLength = 80;
@@ -595,7 +844,7 @@ function renderPets() {
         details.append(summary,form);
         card.append(details);
       } else {
-        card.append(make('span','appointment-state','Registrada'));
+        card.append(make('span','status-pill','Registrada'));
       }
       list.append(card);
     });
@@ -638,7 +887,7 @@ async function loadAccountData() {
     currentPets = [];
   } else currentPets = petsResult.data || [];
   renderPets();
-  const petHeading = document.querySelector('#accountDashboard .account-columns section:first-child h3');
+  const petHeading = document.querySelector('#accountDashboard .account-dashboard__columns section:first-child h3');
   if (petHeading) petHeading.textContent = isStaff ? 'Mascotas registradas' : 'Mis mascotas';
   await loadAppointmentsInto($('accountAppointments'),null);
   await loadMedicalRecords();
@@ -673,8 +922,8 @@ async function loadMedicalRecords() {
   }
   result.data.forEach(record => {
     const pet = currentPets.find(item=>item.id===record.pet_id);
-    const article = make('article','record-row');
-    article.append(make('span','record-date',String(record.record_date).split('-').reverse().join('/')),make('h4','',(pet?pet.name:'Mascota')+' · '+record.record_type),make('p','',record.summary));
+    const article = make('article','medical-record-list__row');
+    article.append(make('span','medical-record-list__date',String(record.record_date).split('-').reverse().join('/')),make('h4','',(pet?pet.name:'Mascota')+' · '+record.record_type),make('p','',record.summary));
     if (record.diagnosis) article.append(make('p','', 'Diagnóstico: '+record.diagnosis));
     if (record.treatment) article.append(make('p','', 'Tratamiento: '+record.treatment));
     if (record.prescriptions) article.append(make('p','', 'Indicaciones: '+record.prescriptions));
@@ -710,8 +959,8 @@ async function loadClinicActivity() {
     medical_record_added:'Atención médica'
   };
   items.forEach(item => {
-    const entry = make('article','clinic-activity-item');
-    const heading = make('div','clinic-activity-heading');
+    const entry = make('article','clinic-activity__item');
+    const heading = make('div','clinic-activity__heading');
     heading.append(make('b','',labels[item.event_type] || 'Actividad de la clínica'));
     const timestamp = new Date(item.created_at);
     const dateText = Number.isNaN(timestamp.getTime()) ? 'Fecha no disponible' : timestamp.toLocaleString('es-BO',{
@@ -724,7 +973,7 @@ async function loadClinicActivity() {
     if (item.event_type === 'appointment_status_changed' && item.details) {
       const from = statusName(item.details.from || '');
       const to = statusName(item.details.to || '');
-      if (from && to) entry.append(make('small','clinic-activity-detail',from + ' → ' + to));
+      if (from && to) entry.append(make('small','clinic-activity__detail',from + ' → ' + to));
     }
     list.append(entry);
   });
@@ -806,13 +1055,13 @@ async function loadStaffData() {
   if (!records.length) panel.append(make('p','empty-appointments','No hay solicitudes registradas.'));
   records.forEach(item => {
     const card = make('article','staff-appointment');
-    const info = make('div','appointment-info');
+    const info = make('div','appointment-list__info');
     const date = String(item.requested_date).split('-').reverse().join('/');
     info.append(make('b','',item.pet_name+' · '+item.service_name),make('p','',item.owner_name+' · '+item.owner_phone+' · '+item.species+' · '+date+' '+String(item.requested_time).slice(0,5)));
     if (item.owner_email) info.append(make('p','',item.owner_email));
     if (item.notes) info.append(make('p','',item.notes));
     const actions = make('div','staff-actions');
-    actions.append(make('span','appointment-state',statusName(item.status)));
+    actions.append(make('span','status-pill',statusName(item.status)));
     if (item.status === 'requested') {
       [['confirmed','Confirmar'],['rejected','Rechazar']].forEach(([status,label])=>{
         const button = make('button','button button-outline',label);
@@ -1301,7 +1550,7 @@ async function init() {
       } else if (sessionData && sessionData.user && event==='SIGNED_IN') {
         recoveringPassword = false;
         currentUser = sessionData.user;
-        setTimeout(()=>showSignedIn().catch(error=>toast(safeError(error),true)),0);
+        setTimeout(()=>showSignedIn().then(()=>syncPendingBookings()).catch(error=>toast(safeError(error),true)),0);
       }
     });
     const session = await client.auth.getSession();
@@ -1327,9 +1576,10 @@ async function init() {
   await loadServices();
   await loadFoods();
   checkConnection();
-  window.addEventListener('online',checkConnection);
+  window.addEventListener('online',()=>{ checkConnection(); syncPendingBookings(); });
   window.addEventListener('offline',updateNetwork);
   guardStaffRoute();
+  await syncPendingBookings();
   if ('serviceWorker' in navigator && location.protocol==='https:') {
     navigator.serviceWorker.register('./sw.js').catch(()=>{});
   }
