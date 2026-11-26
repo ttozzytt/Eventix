@@ -112,6 +112,9 @@ let menuOpen = false;
 let guestNotice = '';
 let isStaff = false;
 let recoveringPassword = false;
+let staffAppointmentRecords = [];
+let staffAppointmentFilter = 'requested';
+
 let offlineQueueDbPromise = null;
 let offlineQueueSyncInProgress = false;
 const OFFLINE_QUEUE_DB = 'pata-andina-local';
@@ -1043,6 +1046,115 @@ async function restoreClinicBackup(event) {
   }
 }
 
+function renderStaffAppointments() {
+  const panel = $('staffAppointments');
+  if (!panel) return;
+  panel.replaceChildren();
+
+  const records = staffAppointmentRecords;
+  const counts = {
+    all:records.length,
+    requested:records.filter(item=>item.status==='requested').length,
+    confirmed:records.filter(item=>item.status==='confirmed').length,
+    completed:records.filter(item=>item.status==='completed').length,
+    closed:records.filter(item=>item.status==='rejected'||item.status==='cancelled').length
+  };
+  Object.entries({
+    staffCountAll:counts.all,
+    staffCountRequested:counts.requested,
+    staffCountConfirmed:counts.confirmed,
+    staffCountCompleted:counts.completed,
+    staffCountClosed:counts.closed
+  }).forEach(([id,value])=>{ const node=$(id); if(node) node.textContent=String(value); });
+
+  const search = ($('staffAgendaSearch')?.value || '').trim().toLocaleLowerCase('es-BO');
+  const dateMode = $('staffAgendaDateFilter')?.value || 'all';
+  const currentDate = today();
+  const nextDate = new Date(currentDate+'T12:00:00');
+  nextDate.setDate(nextDate.getDate()+7);
+  const nextDateKey = nextDate.getFullYear()+'-'+String(nextDate.getMonth()+1).padStart(2,'0')+'-'+String(nextDate.getDate()).padStart(2,'0');
+
+  const filtered = records.filter(item=>{
+    const statusMatch = staffAppointmentFilter==='all'
+      || (staffAppointmentFilter==='closed'
+        ? item.status==='rejected'||item.status==='cancelled'
+        : item.status===staffAppointmentFilter);
+    const date = String(item.requested_date || '');
+    const dateMatch = dateMode==='all'
+      || (dateMode==='today' && date===currentDate)
+      || (dateMode==='next7' && date>=currentDate && date<=nextDateKey)
+      || (dateMode==='past' && date<currentDate);
+    const searchable = [item.owner_name,item.owner_phone,item.owner_email,item.pet_name,item.species,item.service_name,item.notes]
+      .filter(Boolean).join(' ').toLocaleLowerCase('es-BO');
+    return statusMatch && dateMatch && (!search || searchable.includes(search));
+  });
+
+  qa('[data-staff-filter]').forEach(button=>{
+    const active = button.dataset.staffFilter===staffAppointmentFilter;
+    button.classList.toggle('is-active',active);
+    button.setAttribute('aria-pressed',String(active));
+  });
+
+  const summary = $('staffAgendaSummary');
+  if (summary) {
+    const shown = filtered.length;
+    summary.textContent = shown + (shown===1?' de '+records.length+' solicitud':' de '+records.length+' solicitudes');
+  }
+
+  if (!records.length) {
+    panel.append(make('p','empty-appointments','Todavía no hay solicitudes registradas en la agenda.'));
+    return;
+  }
+  if (!filtered.length) {
+    panel.append(make('p','empty-appointments','No hay solicitudes que coincidan con esos filtros.'));
+    return;
+  }
+
+  filtered.forEach(item=>{
+    const card = make('article','staff-appointment');
+    card.dataset.status = item.status;
+    const main = make('div','staff-appointment__main');
+    const info = make('div','staff-appointment__info');
+    const date = String(item.requested_date || '').split('-').reverse().join('/');
+    const time = String(item.requested_time || '').slice(0,5);
+    info.append(
+      make('b','',item.pet_name+' · '+item.service_name),
+      make('p','',item.owner_name+' · '+item.species+' · '+date+' · '+time)
+    );
+
+    const actions = make('div','staff-appointment__actions');
+    actions.append(make('span','status-pill',statusName(item.status)));
+    if (item.status==='requested') {
+      [['confirmed','Confirmar'],['rejected','Rechazar']].forEach(([status,label])=>{
+        const button=make('button','button button-outline',label);
+        button.type='button';
+        button.dataset.staffStatus=status;
+        button.dataset.appointmentId=item.id;
+        actions.append(button);
+      });
+    } else if (item.status==='confirmed') {
+      const completed=make('button','button button-outline','Marcar atendida');
+      completed.type='button';
+      completed.dataset.staffStatus='completed';
+      completed.dataset.appointmentId=item.id;
+      actions.append(completed);
+    }
+    main.append(info,actions);
+    card.append(main);
+
+    const details=document.createElement('details');
+    details.className='staff-appointment__details';
+    const summaryLine=make('summary','','Datos del tutor y observaciones');
+    const detailBody=make('div','staff-appointment__details-body');
+    detailBody.append(make('p','', 'Contacto: '+item.owner_name+' · '+item.owner_phone));
+    if(item.owner_email) detailBody.append(make('p','', 'Correo: '+item.owner_email));
+    if(item.notes) detailBody.append(make('p','', 'Motivo: '+item.notes));
+    details.append(summaryLine,detailBody);
+    card.append(details);
+    panel.append(card);
+  });
+}
+
 async function loadStaffData() {
   const panel = $('staffAppointments');
   panel.replaceChildren(make('p','loading-card','Cargando agenda...'));
@@ -1050,40 +1162,13 @@ async function loadStaffData() {
     .select('id,owner_name,owner_phone,owner_email,pet_name,species,service_name,requested_date,requested_time,notes,status')
     .order('requested_date',{ascending:true})
     .order('requested_time',{ascending:true});
-  panel.replaceChildren();
   if (result.error) {
-    panel.append(make('p','empty-appointments',safeError(result.error)));
+    staffAppointmentRecords = [];
+    panel.replaceChildren(make('p','empty-appointments',safeError(result.error)));
     return;
   }
-  const records = result.data || [];
-  if (!records.length) panel.append(make('p','empty-appointments','No hay solicitudes registradas.'));
-  records.forEach(item => {
-    const card = make('article','staff-appointment');
-    const info = make('div','appointment-list__info');
-    const date = String(item.requested_date).split('-').reverse().join('/');
-    info.append(make('b','',item.pet_name+' · '+item.service_name),make('p','',item.owner_name+' · '+item.owner_phone+' · '+item.species+' · '+date+' '+String(item.requested_time).slice(0,5)));
-    if (item.owner_email) info.append(make('p','',item.owner_email));
-    if (item.notes) info.append(make('p','',item.notes));
-    const actions = make('div','staff-actions');
-    actions.append(make('span','status-pill',statusName(item.status)));
-    if (item.status === 'requested') {
-      [['confirmed','Confirmar'],['rejected','Rechazar']].forEach(([status,label])=>{
-        const button = make('button','button button-outline',label);
-        button.type = 'button';
-        button.dataset.staffStatus = status;
-        button.dataset.appointmentId = item.id;
-        actions.append(button);
-      });
-    } else if (item.status === 'confirmed') {
-      const completed = make('button','button button-outline','Marcar atendida');
-      completed.type = 'button';
-      completed.dataset.staffStatus = 'completed';
-      completed.dataset.appointmentId = item.id;
-      actions.append(completed);
-    }
-    card.append(info,actions);
-    panel.append(card);
-  });
+  staffAppointmentRecords = result.data || [];
+  renderStaffAppointments();
 }
 
 async function saveProfile(event) {
@@ -1367,11 +1452,24 @@ function bindEvents() {
       cancelAppointment(cancel.dataset.cancelAppointment);
       return;
     }
+    const agendaFilter = event.target.closest('[data-staff-filter]');
+    if (agendaFilter) {
+      staffAppointmentFilter = agendaFilter.dataset.staffFilter || 'requested';
+      renderStaffAppointments();
+      return;
+    }
     const staff = event.target.closest('[data-staff-status]');
     if (staff) {
       staffUpdateStatus(staff.dataset.appointmentId,staff.dataset.staffStatus);
       return;
     }
+  });
+
+  document.addEventListener('input',event=>{
+    if (event.target && event.target.id==='staffAgendaSearch') renderStaffAppointments();
+  });
+  document.addEventListener('change',event=>{
+    if (event.target && event.target.id==='staffAgendaDateFilter') renderStaffAppointments();
   });
 
   const serviceLayout = window.matchMedia('(max-width: 620px)');
