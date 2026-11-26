@@ -304,6 +304,10 @@ async function appendOfflineQueueItems(target,countId=null,baseCount=0) {
     const items = allItems
       .filter(item => currentUser ? item.owner_id === currentUser.id : item.owner_id === null)
       .sort((a,b) => String(a.queued_at || '').localeCompare(String(b.queued_at || '')));
+    if (items.length && currentUser) {
+      const emptyMessage = target.querySelector('.empty-appointments');
+      if (emptyMessage) emptyMessage.remove();
+    }
     items.forEach(item => {
       const row = make('article','appointment-list__item');
       row.dataset.pendingOffline = 'true';
