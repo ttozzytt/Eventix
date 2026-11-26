@@ -1,5 +1,5 @@
 'use strict';
-const CACHE_NAME = "pata-andina-v36-offline-booking-20261126";
+const CACHE_NAME = "pata-andina-v37-agenda-care-20261126";
 const SUPABASE_SDK_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2";
 const APP_SHELL = [
   "./",
