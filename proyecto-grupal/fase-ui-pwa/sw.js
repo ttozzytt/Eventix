@@ -1,5 +1,6 @@
 'use strict';
-const CACHE_NAME = "pata-andina-v35-single-view-navigation-20261125";
+const CACHE_NAME = "pata-andina-v36-offline-booking-20261126";
+const SUPABASE_SDK_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -40,6 +41,10 @@ self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
     await cache.addAll(APP_SHELL);
+    try {
+      const sdkResponse = await fetch(SUPABASE_SDK_URL,{mode:'cors',credentials:'omit'});
+      if (sdkResponse.ok) await cache.put(SUPABASE_SDK_URL,sdkResponse.clone());
+    } catch (_) {}
     await self.skipWaiting();
   })());
 });
@@ -59,7 +64,8 @@ self.addEventListener('fetch', event => {
   const sameOrigin = url.origin === self.location.origin;
   if (url.searchParams.has("__pata_health")) { event.respondWith(fetch(request)); return; }
   if (!sameOrigin) {
-    if (request.destination !== 'image') return;
+    const isPinnedSupabaseSDK = request.destination === 'script' && url.href === SUPABASE_SDK_URL;
+    if (request.destination !== 'image' && !isPinnedSupabaseSDK) return;
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
       const saved = await cache.match(request);
