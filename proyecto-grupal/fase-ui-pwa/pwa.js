@@ -708,7 +708,7 @@ async function confirmBooking() {
       data,createOfflineRequestId(),currentUser ? currentUser.id : null,petId
     );
     const result = await client.from('appointment_requests').insert(submissionPayload);
-    if (result.error) throw result.error;
+    if (result.error && String(result.error.code || '') !== '23505') throw result.error;
     guestNotice = 'Solicitud enviada correctamente. El horario está pendiente de confirmación.';
     closeBookingModal();
     $('bookingForm').reset();
