@@ -20,7 +20,7 @@ img{display:block;max-width:100%}
 .main-nav a,.mobile-nav a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 10px;border-radius:10px;color:var(--muted);font-size:11px;font-weight:650;white-space:nowrap;transition:background .18s,color .18s}
 .main-nav a:hover,.mobile-nav a:hover,.main-nav a.active,.mobile-nav a.active{background:var(--surface-soft);color:var(--primary)}
 .header-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}
-.network-status{display:inline-flex;align-items:center;gap:7px;min-height:34px;padding:0 10px;border:1px solid var(--line);border-radius:99px;color:var(--muted);font-size:10px}
+.network-status{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 10px;border:1px solid var(--line);border-radius:99px;color:var(--muted);font-size:10px}
 .network-status i{width:7px;height:7px;border-radius:50%;background:#d2a34d}
 .network-status[data-state=online] i{background:#5fa77a}
 .network-status[data-state=offline] i{background:#d47865}
@@ -845,9 +845,9 @@ body.dark-theme .status-pill--offline{
 .staff-agenda__heading h3{margin:0;color:var(--primary);font:26px var(--serif)}
 .staff-agenda__toolbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(170px,.34fr);gap:10px;margin:10px 0}
 .staff-agenda__toolbar label{display:grid;gap:4px;min-width:0;color:var(--muted-strong);font-size:10px;font-weight:750}
-.staff-agenda__toolbar input,.staff-agenda__toolbar select{width:100%;min-width:0;min-height:42px;padding:8px 11px;border:1px solid var(--line);border-radius:10px;background:var(--page);color:var(--text);font:11px var(--sans)}
+.staff-agenda__toolbar input,.staff-agenda__toolbar select{width:100%;min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--line);border-radius:10px;background:var(--page);color:var(--text);font:11px var(--sans)}
 .staff-agenda__filters{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 12px}
-.staff-agenda__filter{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:0 11px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--muted-strong);font-size:10px;font-weight:750}
+.staff-agenda__filter{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 11px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--muted-strong);font-size:10px;font-weight:750}
 .staff-agenda__filter span{display:grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--surface-soft);font-size:9px}
 .staff-agenda__filter.is-active{border-color:var(--primary);background:var(--primary);color:#fff}
 .staff-agenda__filter.is-active span{background:rgba(255,255,255,.18);color:#fff}
@@ -858,9 +858,9 @@ body.dark-theme .status-pill--offline{
 .staff-appointment__info b{color:var(--primary);font-size:12px;line-height:1.3}
 .staff-appointment__info p{margin:0;color:var(--muted-strong);font-size:10px;line-height:1.35;overflow-wrap:anywhere}
 .staff-appointment__actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap;flex:0 0 auto}
-.staff-appointment__actions .button{min-width:0;min-height:34px;padding:0 10px;font-size:9px}
+.staff-appointment__actions .button{min-width:0;min-height:44px;padding:0 10px;font-size:9px}
 .staff-appointment__details{border-top:1px solid var(--line);padding-top:4px}
-.staff-appointment__details summary{min-height:30px;display:flex;align-items:center;color:var(--primary);font-size:9px;font-weight:750;cursor:pointer}
+.staff-appointment__details summary{min-height:44px;display:flex;align-items:center;color:var(--primary);font-size:9px;font-weight:750;cursor:pointer}
 .staff-appointment__details-body{display:flex;gap:5px 18px;flex-wrap:wrap;padding:4px 0 2px}
 .staff-appointment__details-body p{margin:0;color:var(--muted);font-size:10px;line-height:1.4;overflow-wrap:anywhere}
 .staff-panel .staff-appointment__details[open] .staff-appointment__details-body{padding-bottom:5px}
@@ -884,15 +884,15 @@ body.dark-theme .status-pill--offline{
   .staff-agenda__heading h3{font-size:21px}
   .staff-agenda__toolbar{grid-template-columns:minmax(0,1fr) minmax(112px,.45fr);gap:7px;margin:8px 0}
   .staff-agenda__toolbar label{font-size:8px}
-  .staff-agenda__toolbar input,.staff-agenda__toolbar select{min-height:40px;padding:7px 8px;font-size:10px}
+  .staff-agenda__toolbar input,.staff-agenda__toolbar select{min-height:44px;padding:7px 8px;font-size:10px}
   .staff-agenda__filters{gap:5px;margin-bottom:9px}
-  .staff-agenda__filter{min-height:36px;padding:0 8px;font-size:8px}
+  .staff-agenda__filter{min-height:44px;padding:0 8px;font-size:8px}
   .staff-agenda__filter span{min-width:16px;height:16px;font-size:8px}
   .staff-appointment{gap:5px;padding:9px;border-radius:10px}
   .staff-appointment__main{align-items:flex-start;flex-direction:column;gap:7px}
   .staff-appointment__actions{justify-content:flex-start;width:100%}
-  .staff-appointment__actions .button{min-height:36px}
-  .staff-appointment__details summary{min-height:30px}
+  .staff-appointment__actions .button{min-height:44px}
+  .staff-appointment__details summary{min-height:44px}
   .staff-agenda__list{gap:6px}
   .care-section{min-height:calc(100dvh - 62px);gap:10px;padding:12px 0 16px}
   .care-section__layout{gap:10px}
